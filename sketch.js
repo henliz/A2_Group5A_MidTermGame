@@ -1,6 +1,8 @@
 let charSheet;
 let player;
 
+let spoonImg;
+
 let camX = 0;
 let camY = 0;
 
@@ -27,13 +29,14 @@ let evidencePg;
 function preload() {
   tf1Preload();
   charSheet = loadImage("redridinghood.png");
+  spoonImg = loadImage("assets/spoon-placeholder.png");
 
   //journal pages
-  doctorPg = loadImage("Doctor profile.png");
-  rmPg = loadImage("RM Profile.png");
-  innkeeperPg = loadImage("Innkeeper profile.png");
-  fdlPg = loadImage("FDL Profile.png");
-  evidencePg = loadImage("Evidence page.png");
+  doctorPg = loadImage("assets/Doctor profile.png");
+  rmPg = loadImage("assets/RM Profile.png");
+  innkeeperPg = loadImage("assets/Innkeeper profile.png");
+  fdlPg = loadImage("assets/FDL Profile.png");
+  evidencePg = loadImage("assets/Evidence page.png");
 }
 
 function setup() {
@@ -48,6 +51,7 @@ function setup() {
   player.dir = DIR.down;
 
   journal = new Journal();
+  npcs = [innkeeper]; //array of npcs we have
 }
 
 function draw() {
@@ -64,14 +68,20 @@ function draw() {
 
   tf1Draw(0, 0);
   drawPlayer();
-
+  for (let npc of npcs) {
+    npc.draw();
+  }
   pop();
 
+  drawDialogue();
+  drawSpoonCounter();
+  drawPrompt();
   drawJournalIcon();
   journal.display();
 }
 
 function updatePlayer() {
+  if (dialoguePhase !== "closed") return; // freezes movement during dialogue
   let vx = 0,
     vy = 0;
 
@@ -148,6 +158,61 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 
+function drawSpoonCounter() {
+  let spoonSize = 36; // size of each spoon icon
+  let gap = 8; // gap between spoons
+  let startX = width * 0.7; // left padding from screen edge
+  let startY = 20; // top padding from screen edge
+
+  for (let i = 0; i < 7; i++) {
+    let x = startX + i * (spoonSize + gap);
+
+    if (i < spoonsRemaining) {
+      // full colour spoon — still have this spoon
+      tint(255, 255, 255);
+    } else {
+      // faded/greyed out — spoon has been spent
+      tint(255, 255, 255, 80);
+    }
+
+    image(spoonImg, x, startY, spoonSize, spoonSize);
+  }
+
+  // always reset tint after so nothing else is affected
+  noTint();
+}
+
+function drawPrompt() {
+  if (dialoguePhase !== "closed") return; // hide during dialogue
+
+  for (let npc of npcs) {
+    if (npc.isPlayerNearby(player)) {
+      // convert NPC world position to screen position
+      let screenX = npc.x - camX;
+      let screenY = npc.y - camY;
+
+      // draw a small dark pill-shaped box above the NPC
+      let msg = "Press E to talk";
+      textSize(13);
+      let msgW = textWidth(msg) + 20;
+      let msgH = 24;
+      let msgX = screenX - msgW / 2;
+      let msgY = screenY - 50;
+
+      fill(0, 0, 0, 180); // semi-transparent dark background
+      noStroke();
+      rect(msgX, msgY, msgW, msgH, 12); // 12 = rounded corners
+
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(13);
+      text(msg, screenX, msgY + msgH / 2);
+
+      break; // only show prompt for one NPC at a time
+    }
+  }
+}
+
 //journal icon
 function drawJournalIcon() {
   fill(255);
@@ -161,6 +226,36 @@ function drawJournalIcon() {
 function keyPressed() {
   if (key === "j" || key === "J") {
     journal.toggle();
+  }
+  if (key === "e" || key === "E") {
+    if (dialoguePhase === "closed") {
+      for (let npc of npcs) {
+        if (npc.isPlayerNearby(player)) {
+          openDialogue(npc);
+          return;
+        }
+      }
+    } else if (dialoguePhase === "opening") {
+      dialoguePhase = "choosing"; // E advances from opening to choices
+    } else if (dialoguePhase === "choosing") {
+      confirmChoice(); // E confirms the highlighted option
+    } else if (dialoguePhase === "response") {
+      dialoguePhase = "monologue"; // E advances to internal monologue next
+    } else if (dialoguePhase === "monologue") {
+      closeDialogue(); // E closes dialogue after internal monologue
+    } else if (dialoguePhase === "repeat") {
+      closeDialogue(); // E just closes the one-liner
+    }
+  }
+
+  // navigate buttons with W / S
+  if (dialoguePhase === "choosing") {
+    if (key === "w" || key === "W") {
+      selectedOption = (selectedOption - 1 + 3) % 3; // wrap up
+    }
+    if (key === "s" || key === "S") {
+      selectedOption = (selectedOption + 1) % 3; // wrap down
+    }
   }
 }
 
