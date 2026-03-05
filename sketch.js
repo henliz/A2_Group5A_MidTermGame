@@ -26,9 +26,12 @@ let innkeeperPg;
 let fdlPg;
 let evidencePg;
 
+let currentScene = "HOME";
+
 function preload() {
   tf1Preload();
   charSheet = loadImage("redridinghood.png");
+  loadHomeAssets();
   spoonImg = loadImage("assets/spoon-placeholder.png");
 
   //journal pages
@@ -61,6 +64,12 @@ function setup() {
 
 function draw() {
   background(22, 18, 20);
+
+  //Home Page
+  if (currentScene === "HOME") {
+    drawHomePage();
+    return;
+  }
 
   if (!journal.isOpen) {
     updatePlayer();
@@ -219,6 +228,10 @@ function drawPrompt() {
 }
 
 function keyPressed() {
+  if (currentScene === "HOME" && keyCode === ENTER) {
+    currentScene = "GAME";
+  }
+
   if (key === "e" || key === "E") {
     if (dialoguePhase === "closed") {
       for (let npc of npcs) {
@@ -321,6 +334,13 @@ function drawJournalIcon() {
 }
 
 function keyPressed() {
+  // START SCREEN
+  if (currentScene === "HOME") {
+    if (keyCode === ENTER) {
+      currentScene = "GAME";
+    }
+    return;
+  }
   if (key === "j" || key === "J") {
     journal.toggle();
   }
