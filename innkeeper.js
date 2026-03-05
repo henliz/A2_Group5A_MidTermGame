@@ -1,5 +1,3 @@
-//this is all the information for the innkeeper
-
 const innkeeperDialogue = {
   opening:
     "Tsk, this is terrible. My inn's reputation will be ruined… What do you want, girl?",

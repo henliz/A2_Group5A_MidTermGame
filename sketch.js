@@ -18,10 +18,25 @@ const DIR = { down: 0, left: 1, right: 2, up: 3 };
 const P_SPEED = 4.5;
 const P_RADIUS = 10;
 
+let journal;
+
+let doctorPg;
+let rmPg;
+let innkeeperPg;
+let fdlPg;
+let evidencePg;
+
 function preload() {
   tf1Preload();
   charSheet = loadImage("redridinghood.png");
   spoonImg = loadImage("assets/spoon-placeholder.png");
+
+  //journal pages
+  doctorPg = loadImage("assets/Doctor profile.png");
+  rmPg = loadImage("assets/RM Profile.png");
+  innkeeperPg = loadImage("assets/Innkeeper profile.png");
+  fdlPg = loadImage("assets/FDL Profile.png");
+  evidencePg = loadImage("assets/Evidence page.png");
 }
 
 function setup() {
@@ -35,23 +50,24 @@ function setup() {
   player.py = 576; // mid-floor (wall=256px tall, then floor below)
   player.dir = DIR.down;
 
+  journal = new Journal();
   npcs = [innkeeper]; //array of npcs we have
 }
 
 function draw() {
   background(22, 18, 20);
 
-  updatePlayer();
-
-  camX = lerp(camX, player.px - width / 2, 0.14);
-  camY = lerp(camY, player.py - height / 2, 0.14);
+  if (!journal.isOpen) {
+    updatePlayer();
+    camX = lerp(camX, player.px - width / 2, 0.14);
+    camY = lerp(camY, player.py - height / 2, 0.14);
+  }
 
   push();
   translate(-camX, -camY);
 
   tf1Draw(0, 0);
   drawPlayer();
-  //npc drawing
   for (let npc of npcs) {
     npc.draw();
   }
@@ -60,6 +76,8 @@ function draw() {
   drawDialogue();
   drawSpoonCounter();
   drawPrompt();
+  drawJournalIcon();
+  journal.display();
 }
 
 function updatePlayer() {
@@ -120,8 +138,6 @@ function circleHitsSolid(cx, cy, r) {
   for (const [px, py] of pts) {
     if (tf1IsSolidAtPixel(px, py)) return true;
   }
-
-  if (playerHitsNPC(cx, cy, r)) return true;
   return false;
 }
 
@@ -138,10 +154,14 @@ function drawPlayer() {
   imageMode(CORNER);
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
 function drawSpoonCounter() {
   let spoonSize = 36; // size of each spoon icon
   let gap = 8; // gap between spoons
-  let startX = width * 0.75; // left padding from screen edge
+  let startX = width * 0.7; // left padding from screen edge
   let startY = 20; // top padding from screen edge
 
   for (let i = 0; i < 7; i++) {
@@ -193,7 +213,20 @@ function drawPrompt() {
   }
 }
 
+//journal icon
+function drawJournalIcon() {
+  fill(255);
+  rect(width - 60, 20, 40, 40);
+  fill(0);
+  textSize(14);
+  textAlign(CENTER, CENTER);
+  text("J", width - 40, 40);
+}
+
 function keyPressed() {
+  if (key === "j" || key === "J") {
+    journal.toggle();
+  }
   if (key === "e" || key === "E") {
     if (dialoguePhase === "closed") {
       for (let npc of npcs) {
@@ -226,6 +259,19 @@ function keyPressed() {
   }
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+function mousePressed() {
+  if (
+    mouseX > width - 60 &&
+    mouseX < width - 20 &&
+    mouseY > 20 &&
+    mouseY < 60
+  ) {
+    journal.toggle();
+    return;
+  }
+
+  if (journal.isOpen) {
+    journal.handleClick(mouseX, mouseY);
+    return;
+  }
 }
