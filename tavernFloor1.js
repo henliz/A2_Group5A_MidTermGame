@@ -292,6 +292,17 @@ function tf1Draw(worldX = 0, worldY = 0) {
   }
 }
 
+// allow other files (clutter.js) to mark collision tiles
+window.tf1MarkSolidRect = function (tileX, tileY, wTiles, hTiles) {
+  for (let r = tileY; r < tileY + hTiles; r++) {
+    for (let c = tileX; c < tileX + wTiles; c++) {
+      if (r >= 0 && r < TF1_H && c >= 0 && c < TF1_W) {
+        TF1_SOLID[r][c] = 1;
+      }
+    }
+  }
+};
+
 // Expose globally
 window.tf1Preload = tf1Preload;
 window.tf1Setup   = tf1Setup;

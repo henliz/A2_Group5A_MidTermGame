@@ -32,6 +32,7 @@ let currentScene = "HOME";
 
 function preload() {
   tf1Preload();
+  clutterPreload();
   charSheet = loadImage("redridinghood.png");
   loadHomeAssets();
   spoonImg = loadImage("assets/spoon-placeholder.png");
@@ -201,6 +202,7 @@ function draw() {
   translate(-camX, -camY);
 
   tf1Draw(0, 0);
+  clutterDraw(0, 0);
   drawPlayer();
   for (let npc of npcs) {
     npc.update();
