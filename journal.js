@@ -44,7 +44,7 @@ class Journal {
     // Draw any unlocked text entries on top of the page
     if (page.textEntries.length > 0) {
       let entryX = 750;
-      let entryY = height * 0.62; // position entries in the lower portion of the page
+      let entryY = 250;
       let entryW = width - 260;
 
       fill(40, 20, 10);
