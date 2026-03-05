@@ -78,6 +78,7 @@ function draw() {
   drawPrompt();
   drawJournalIcon();
   journal.display();
+  bedtime();
 }
 
 function updatePlayer() {
