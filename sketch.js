@@ -51,7 +51,12 @@ function setup() {
   player.dir = DIR.down;
 
   journal = new Journal();
-  npcs = [innkeeper]; //array of npcs we have
+  npcs = [innkeeper, doctor, runawayMan]; //array of npcs we have
+
+  // set NPC colours here, after p5.js is ready
+  innkeeper.colour = color(255, 100, 100); // red
+  doctor.colour = color(100, 200, 255); // light blue
+  runawayMan.colour = color(100, 220, 130); // green
 }
 
 function draw() {
