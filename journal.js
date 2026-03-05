@@ -7,13 +7,14 @@ class Journal {
     this.isOpen = false;
     this.openPage = 0;
 
-    this.totalPages = 4;
+    this.totalPages = 5;
 
     // Data storage array
     this.pages = [
       { title: "NPC 1", entries: [] },
       { title: "NPC 2", entries: [] },
       { title: "NPC 3", entries: [] },
+      { title: "NPC 4", entries: [] },
       { title: "Evidence", entries: [] },
     ];
   }

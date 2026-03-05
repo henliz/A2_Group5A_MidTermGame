@@ -18,12 +18,22 @@ const P_RADIUS = 10;
 
 let journal;
 
-let npc1_pg1;
-let npc1_pg2;
+let doctorPg;
+let rmPg;
+let innkeeperPg;
+let fdlPg;
+let evidencePg;
 
 function preload() {
   tf1Preload();
   charSheet = loadImage("redridinghood.png");
+
+  //journal pages
+  doctorPg = loadImage("Doctor profile.png");
+  rmPg = loadImage("RM Profile.png");
+  innkeeperPg = loadImage("Innkeeper profile.png");
+  fdlPg = loadImage("FDL Profile.png");
+  evidencePg = loadImage("Evidence page.png");
 }
 
 function setup() {
