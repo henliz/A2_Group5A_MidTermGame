@@ -18,10 +18,29 @@ const DIR = { down: 0, left: 1, right: 2, up: 3 };
 const P_SPEED = 4.5;
 const P_RADIUS = 10;
 
+let journal;
+
+let doctorPg;
+let rmPg;
+let innkeeperPg;
+let fdlPg;
+let evidencePg;
+
+let innkeep3spoons;
+
 function preload() {
   tf1Preload();
   charSheet = loadImage("redridinghood.png");
   spoonImg = loadImage("assets/spoon-placeholder.png");
+
+  //journal pages
+  doctorPg = loadImage("journalPages/Doctor profile.png");
+  rmPg = loadImage("journalPages/RM Profile.png");
+  innkeeperPg = loadImage("journalPages/Innkeeper profile.png");
+  fdlPg = loadImage("journalPages/FDL Profile.png");
+  evidencePg = loadImage("journalPages/Evidence page.png");
+
+  innkeep3spoons = loadImage("journalPages/Innkeeper (+ info).png");
 }
 
 function setup() {
@@ -35,16 +54,18 @@ function setup() {
   player.py = 576; // mid-floor (wall=256px tall, then floor below)
   player.dir = DIR.down;
 
+  journal = new Journal();
   npcs = [innkeeper]; //array of npcs we have
 }
 
 function draw() {
   background(22, 18, 20);
 
-  updatePlayer();
-
-  camX = lerp(camX, player.px - width / 2, 0.14);
-  camY = lerp(camY, player.py - height / 2, 0.14);
+  if (!journal.isOpen) {
+    updatePlayer();
+    camX = lerp(camX, player.px - width / 2, 0.14);
+    camY = lerp(camY, player.py - height / 2, 0.14);
+  }
 
   push();
   translate(-camX, -camY);
@@ -60,6 +81,8 @@ function draw() {
   drawDialogue();
   drawSpoonCounter();
   drawPrompt();
+  drawJournalIcon();
+  journal.display();
 }
 
 function updatePlayer() {
@@ -228,4 +251,122 @@ function keyPressed() {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+}
+
+function drawSpoonCounter() {
+  let spoonSize = 36; // size of each spoon icon
+  let gap = 8; // gap between spoons
+  let startX = width * 0.7; // left padding from screen edge
+  let startY = 20; // top padding from screen edge
+
+  for (let i = 0; i < 7; i++) {
+    let x = startX + i * (spoonSize + gap);
+
+    if (i < spoonsRemaining) {
+      // full colour spoon — still have this spoon
+      tint(255, 255, 255);
+    } else {
+      // faded/greyed out — spoon has been spent
+      tint(255, 255, 255, 80);
+    }
+
+    image(spoonImg, x, startY, spoonSize, spoonSize);
+  }
+
+  // always reset tint after so nothing else is affected
+  noTint();
+}
+
+function drawPrompt() {
+  if (dialoguePhase !== "closed") return; // hide during dialogue
+
+  for (let npc of npcs) {
+    if (npc.isPlayerNearby(player)) {
+      // convert NPC world position to screen position
+      let screenX = npc.x - camX;
+      let screenY = npc.y - camY;
+
+      // draw a small dark pill-shaped box above the NPC
+      let msg = "Press E to talk";
+      textSize(13);
+      let msgW = textWidth(msg) + 20;
+      let msgH = 24;
+      let msgX = screenX - msgW / 2;
+      let msgY = screenY - 50;
+
+      fill(0, 0, 0, 180); // semi-transparent dark background
+      noStroke();
+      rect(msgX, msgY, msgW, msgH, 12); // 12 = rounded corners
+
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(13);
+      text(msg, screenX, msgY + msgH / 2);
+
+      break; // only show prompt for one NPC at a time
+    }
+  }
+}
+
+//journal icon
+function drawJournalIcon() {
+  fill(255);
+  rect(width - 60, 20, 40, 40);
+  fill(0);
+  textSize(14);
+  textAlign(CENTER, CENTER);
+  text("J", width - 40, 40);
+}
+
+function keyPressed() {
+  if (key === "j" || key === "J") {
+    journal.toggle();
+  }
+  if (key === "e" || key === "E") {
+    if (dialoguePhase === "closed") {
+      for (let npc of npcs) {
+        if (npc.isPlayerNearby(player)) {
+          openDialogue(npc);
+          return;
+        }
+      }
+    } else if (dialoguePhase === "opening") {
+      dialoguePhase = "choosing"; // E advances from opening to choices
+    } else if (dialoguePhase === "choosing") {
+      confirmChoice(); // E confirms the highlighted option
+    } else if (dialoguePhase === "response") {
+      dialoguePhase = "monologue"; // E advances to internal monologue next
+    } else if (dialoguePhase === "monologue") {
+      closeDialogue(); // E closes dialogue after internal monologue
+    } else if (dialoguePhase === "repeat") {
+      closeDialogue(); // E just closes the one-liner
+    }
+  }
+
+  // navigate buttons with W / S
+  if (dialoguePhase === "choosing") {
+    if (key === "w" || key === "W") {
+      selectedOption = (selectedOption - 1 + 3) % 3; // wrap up
+    }
+    if (key === "s" || key === "S") {
+      selectedOption = (selectedOption + 1) % 3; // wrap down
+    }
+  }
+}
+
+function mousePressed() {
+  if (
+    mouseX > width - 60 &&
+    mouseX < width - 20 &&
+    mouseY > 20 &&
+    mouseY < 60
+  ) {
+    journal.toggle();
+    return;
+  }
+
+  if (journal.isOpen) {
+    journal.handleClick(mouseX, mouseY);
+    return;
+  }
 }
