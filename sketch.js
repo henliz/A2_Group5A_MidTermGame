@@ -2,6 +2,7 @@ let charSheet;
 let player;
 
 let spoonImg;
+let innkeeperImg;
 
 let camX = 0;
 let camY = 0;
@@ -33,6 +34,7 @@ function preload() {
   charSheet = loadImage("redridinghood.png");
   loadHomeAssets();
   spoonImg = loadImage("assets/spoon-placeholder.png");
+  innkeeperImg = loadImage("assets/innkeeper_sprite.png");
 
   //journal pages
   doctorPg = loadImage("journalPages/Doctor profile.png");
@@ -57,7 +59,9 @@ function setup() {
   npcs = [innkeeper, doctor, runawayMan]; //array of npcs we have
 
   // set NPC colours here, after p5.js is ready
-  innkeeper.colour = color(255, 100, 100); // red
+  innkeeper.sprite = innkeeperImg;
+  innkeeper.spriteFrameW = 48;
+  innkeeper.spriteFrameH = 48;
   doctor.colour = color(100, 200, 255); // light blue
   runawayMan.colour = color(100, 220, 130); // green
 }
@@ -82,8 +86,8 @@ function draw() {
 
   tf1Draw(0, 0);
   drawPlayer();
-  //npc drawing
   for (let npc of npcs) {
+    npc.update();
     npc.draw();
   }
   pop();
@@ -170,98 +174,6 @@ function drawPlayer() {
   imageMode(CENTER);
   image(charSheet, player.px, player.py - 8, dw, dh, sx, sy, FRAME_W, FRAME_H);
   imageMode(CORNER);
-}
-
-function drawSpoonCounter() {
-  let spoonSize = 36; // size of each spoon icon
-  let gap = 8; // gap between spoons
-  let startX = width * 0.75; // left padding from screen edge
-  let startY = 20; // top padding from screen edge
-
-  for (let i = 0; i < 7; i++) {
-    let x = startX + i * (spoonSize + gap);
-
-    if (i < spoonsRemaining) {
-      // full colour spoon — still have this spoon
-      tint(255, 255, 255);
-    } else {
-      // faded/greyed out — spoon has been spent
-      tint(255, 255, 255, 80);
-    }
-
-    image(spoonImg, x, startY, spoonSize, spoonSize);
-  }
-
-  // always reset tint after so nothing else is affected
-  noTint();
-}
-
-function drawPrompt() {
-  if (dialoguePhase !== "closed") return; // hide during dialogue
-
-  for (let npc of npcs) {
-    if (npc.isPlayerNearby(player)) {
-      // convert NPC world position to screen position
-      let screenX = npc.x - camX;
-      let screenY = npc.y - camY;
-
-      // draw a small dark pill-shaped box above the NPC
-      let msg = "Press E to talk";
-      textSize(13);
-      let msgW = textWidth(msg) + 20;
-      let msgH = 24;
-      let msgX = screenX - msgW / 2;
-      let msgY = screenY - 50;
-
-      fill(0, 0, 0, 180); // semi-transparent dark background
-      noStroke();
-      rect(msgX, msgY, msgW, msgH, 12); // 12 = rounded corners
-
-      fill(255);
-      textAlign(CENTER, CENTER);
-      textSize(13);
-      text(msg, screenX, msgY + msgH / 2);
-
-      break; // only show prompt for one NPC at a time
-    }
-  }
-}
-
-function keyPressed() {
-  if (currentScene === "HOME" && keyCode === ENTER) {
-    currentScene = "GAME";
-  }
-
-  if (key === "e" || key === "E") {
-    if (dialoguePhase === "closed") {
-      for (let npc of npcs) {
-        if (npc.isPlayerNearby(player)) {
-          openDialogue(npc);
-          return;
-        }
-      }
-    } else if (dialoguePhase === "opening") {
-      dialoguePhase = "choosing"; // E advances from opening to choices
-    } else if (dialoguePhase === "choosing") {
-      confirmChoice(); // E confirms the highlighted option
-    } else if (dialoguePhase === "response") {
-      dialoguePhase = "monologue"; // E advances to internal monologue next
-    } else if (dialoguePhase === "monologue") {
-      closeDialogue(); // E closes dialogue after internal monologue
-    } else if (dialoguePhase === "repeat") {
-      closeDialogue(); // E just closes the one-liner
-    }
-  }
-
-  // navigate buttons with W / S
-  if (dialoguePhase === "choosing") {
-    if (key === "w" || key === "W") {
-      selectedOption = (selectedOption - 1 + 3) % 3; // wrap up
-    }
-    if (key === "s" || key === "S") {
-      selectedOption = (selectedOption + 1) % 3; // wrap down
-    }
-  }
 }
 
 function windowResized() {
