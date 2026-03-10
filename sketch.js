@@ -31,6 +31,7 @@ let evidencePg;
 let portraits = {}; // for dialogue portraits
 
 let currentScene = "HOME";
+let journalicon;
 
 function preload() {
   tf1Preload();
@@ -67,6 +68,7 @@ function preload() {
     // doctor: { idle: loadImage("assets/portraits/DR_Idle.png"), ... },
     // runawayMan: { idle: loadImage("assets/portraits/RM_Idle.png"), ... },
   };
+  journalicon = loadImage("assets/bookicon.png");
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -385,12 +387,18 @@ function drawPrompt() {
 
 //journal icon
 function drawJournalIcon() {
-  fill(255);
-  rect(width - 60, 20, 40, 40);
-  fill(0);
-  textSize(14);
-  textAlign(CENTER, CENTER);
-  text("J", width - 40, 40);
+  const ix = width - 60,
+    iy = 20,
+    iw = 40,
+    ih = 40;
+
+  image(journalicon, ix, iy, iw, ih);
+
+  if (journal.hasUnread) {
+    noStroke();
+    fill(210, 50, 50);
+    ellipse(ix + 5, iy + 5, 14, 14);
+  }
 }
 
 function keyPressed() {
@@ -407,6 +415,18 @@ function keyPressed() {
   }
 
   if (keyCode === ENTER) {
+  if (journal.isOpen) {
+    if (keyCode === LEFT_ARROW || key === "a" || key === "A") {
+      journal.prevPage();
+      return;
+    }
+    if (keyCode === RIGHT_ARROW || key === "d" || key === "D") {
+      journal.nextPage();
+      return;
+    }
+  }
+
+  if (key === "e" || key === "E") {
     if (dialoguePhase === "closed") {
       for (let npc of npcs) {
         if (npc.isPlayerNearby(player)) {
