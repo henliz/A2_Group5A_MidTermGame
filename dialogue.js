@@ -38,7 +38,7 @@ function drawDialogue() {
 
   let boxW = 1857 / 3; // control width only
   let boxH = 681 / 3; // height follows aspect ratio
-  let boxX = width * 0.5 - boxW / 2; // centered horizontally
+  let boxX = width * 0.12; // left-aligned with small margin
   let boxY = height - boxH - 20; // pinned to bottom with padding
 
   drawPortrait(boxX, boxY, boxW);
