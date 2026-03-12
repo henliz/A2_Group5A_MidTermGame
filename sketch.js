@@ -265,7 +265,7 @@ function setup() {
   runawayMan.colour = color(100, 220, 130); // green
   runawayMan.sprite = runawayManImg;
   runawayMan.spriteFrameW = 48;
-  runawayMan.spriteFrameH = 56;
+  runawayMan.spriteFrameH = 64; // measured from pixel data: rows are 64px tall, not 56
 }
 
 function draw() {

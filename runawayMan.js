@@ -49,13 +49,19 @@ runawayMan.wanderBounds = { c0: 2, r0: 0, c1: 12, r1: 7 };
 runawayMan.patrolSpeed  = 2.0;  // fast, nervous
 runawayMan.idleDuration = 50;   // short pauses — can't stay still
 
-// Jerome's spritesheet row order is RIGHT / DOWN / LEFT / UP,
-// which differs from the standard RPG Maker order (DOWN / LEFT / RIGHT / UP).
-//   DIR.down  (0) → row 1  (frontal / toward viewer)
-//   DIR.left  (1) → row 2  (left-facing profile)
-//   DIR.right (2) → row 0  (right-facing profile — top row of sheet)
-//   DIR.up    (3) → row 3  (back of character)
-// If sprites look wrong in-game, swap row 0 and row 1 in the map below.
-runawayMan.spriteRowMap = { 0: 1, 1: 2, 2: 0, 3: 3 };
+// Jerome's spritesheet row order is UP / DOWN / LEFT / RIGHT
+// (confirmed by pixel analysis — skin-pixel centroid positions per row).
+// Standard RPG Maker order would be DOWN / LEFT / RIGHT / UP.
+//
+//   Sheet row 0  → UP    (back of head: only 11 skin px, centroid low in frame)
+//   Sheet row 1  → DOWN  (frontal: 204 skin px, x-centroid centred at 22.4)
+//   Sheet row 2  → LEFT  (profile: 204 skin px, x-centroid 18.3 — face points left)
+//   Sheet row 3  → RIGHT (profile: 204 skin px, x-centroid 25.2 — face points right)
+//
+//   DIR.down  (0) → row 1
+//   DIR.left  (1) → row 2
+//   DIR.right (2) → row 3
+//   DIR.up    (3) → row 0
+runawayMan.spriteRowMap = { 0: 1, 1: 2, 2: 3, 3: 0 };
 
 window.runawayMan = runawayMan;
