@@ -37,7 +37,7 @@ const clutterAssetList = [
   },
   {
     key: "bed1",
-    path: "assets/bed-1.png",
+    path: "assets/bed-5.png",
   },
   {
     key: "bed2",
@@ -47,10 +47,7 @@ const clutterAssetList = [
     key: "bed3",
     path: "assets/bed-4.png",
   },
-  {
-    key: "bed4",
-    path: "assets/bed-5.png",
-  },
+
   {
     key: "sofa1",
     path: "assets/walls/sofa-1.png",
@@ -88,10 +85,6 @@ const clutterAssetList = [
     path: "assets/shelf-2.png",
   },
   {
-    key: "bigtable2",
-    path: "assets/bigtable-2.png",
-  },
-  {
     key: "shelf3",
     path: "assets/shelf-3.png",
   },
@@ -106,6 +99,31 @@ const clutterAssetList = [
   {
     key: "door1",
     path: "assets/door-1.png",
+  },
+  //office clutter
+  {
+    key: "desk",
+    path: "assets/desk.png",
+  },
+  {
+    key: "deskchair",
+    path: "assets/deskchair.png",
+  },
+  {
+    key: "painting",
+    path: "assets/painting.png",
+  },
+  {
+    key: "bigtable2",
+    path: "assets/bigtable-4.png",
+  },
+  {
+    key: "TV",
+    path: "assets/TV.png",
+  },
+  {
+    key: "cabinet2",
+    path: "assets/cabinet-2.png",
   },
 ];
 
@@ -137,7 +155,7 @@ const roomLayout = [
   {
     asset: "bed1",
     tileX: 1.6,
-    tileY: 4.2,
+    tileY: 4,
     scale: 6,
     anchor: "top-left",
   },
@@ -225,13 +243,7 @@ const roomLayout = [
     scale: 6,
     anchor: "bottom",
   },
-  {
-    asset: "bigtable2",
-    tileX: 2.8,
-    tileY: 3.6,
-    scale: 4,
-    anchor: "bottom",
-  },
+
   {
     asset: "shelf3",
     tileX: 10.4,
@@ -241,7 +253,7 @@ const roomLayout = [
   },
   {
     asset: "cabinet1",
-    tileX: 12,
+    tileX: 2.6,
     tileY: 3.6,
     scale: 4,
     anchor: "bottom",
@@ -259,6 +271,50 @@ const roomLayout = [
     tileY: 1.3,
     scale: 5,
     anchor: "bottom",
+  },
+
+  //office clutter
+  {
+    asset: "desk",
+    tileX: 13,
+    tileY: 5,
+    scale: 7,
+    anchor: "top-left",
+  },
+  {
+    asset: "deskchair",
+    tileX: 12.6,
+    tileY: 5.1,
+    scale: 4,
+    anchor: "top-left",
+  },
+  {
+    asset: "painting",
+    tileX: 11.6,
+    tileY: 2.5,
+    scale: 4,
+    anchor: "bottom",
+  },
+  {
+    asset: "bigtable2",
+    tileX: 12.4,
+    tileY: 3.7,
+    scale: 4,
+    anchor: "top-left",
+  },
+  {
+    asset: "TV",
+    tileX: 12.5,
+    tileY: 3.5,
+    scale: 3,
+    anchor: "top-left",
+  },
+  {
+    asset: "cabinet2",
+    tileX: 11.8,
+    tileY: 3.7,
+    scale: 3,
+    anchor: "top-left",
   },
 ];
 
