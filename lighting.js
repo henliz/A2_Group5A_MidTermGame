@@ -8,35 +8,37 @@ let lightingBuffer;
 // One light per room / area of the inn, in world pixels.
 // Positions derived from TF1_FLOOR_MASK layout (TF1_T = 128px per tile).
 // seed: unique offset so each light flickers independently via noise().
+// TF1_T is a global const from tavernFloor1.js (loaded first) — use it so
+// light positions stay aligned when the tile scale changes.
 const LIGHT_SOURCES = [
   // ── Top rooms ──────────────────────────────────────────────────────────────
-  { x:  3.5 * 128, y:  0.7 * 128, r: 210, seed: 0.11 }, // left bedroom
-  { x: 10.5 * 128, y:  0.7 * 128, r: 210, seed: 1.34 }, // right bedroom
+  { x:  3.5 * TF1_T, y:  0.7 * TF1_T, r: 210, seed: 0.11 }, // left bedroom
+  { x: 10.5 * TF1_T, y:  0.7 * TF1_T, r: 210, seed: 1.34 }, // right bedroom
 
   // ── Upper connecting corridor (rows 2–3) ───────────────────────────────────
-  { x:  7.0 * 128, y:  2.5 * 128, r: 260, seed: 2.57 }, // upper hallway
+  { x:  7.0 * TF1_T, y:  2.5 * TF1_T, r: 260, seed: 2.57 }, // upper hallway
 
   // ── Main hall (rows 4–5) ───────────────────────────────────────────────────
-  { x:  3.0 * 128, y:  4.5 * 128, r: 340, seed: 3.21 }, // hall left
-  { x:  7.0 * 128, y:  4.5 * 128, r: 380, seed: 4.45 }, // hall centre (biggest)
-  { x: 11.0 * 128, y:  4.5 * 128, r: 320, seed: 5.68 }, // hall right
-  { x: 12.5 * 128, y:  3.8 * 128, r: 230, seed: 6.02 }, // office corner
+  { x:  3.0 * TF1_T, y:  4.5 * TF1_T, r: 340, seed: 3.21 }, // hall left
+  { x:  7.0 * TF1_T, y:  4.5 * TF1_T, r: 380, seed: 4.45 }, // hall centre (biggest)
+  { x: 11.0 * TF1_T, y:  4.5 * TF1_T, r: 320, seed: 5.68 }, // hall right
+  { x: 12.5 * TF1_T, y:  3.8 * TF1_T, r: 230, seed: 6.02 }, // office corner
 
   // ── Centre corridor (rows 6–7) ─────────────────────────────────────────────
-  { x:  7.0 * 128, y:  6.5 * 128, r: 230, seed: 7.14 }, // dim hallway lamp
+  { x:  7.0 * TF1_T, y:  6.5 * TF1_T, r: 230, seed: 7.14 }, // dim hallway lamp
 
   // ── Tavern / bar area (rows 8–9) ───────────────────────────────────────────
-  { x: 11.5 * 128, y:  8.5 * 128, r: 370, seed: 8.37 }, // bar counter
-  { x:  3.5 * 128, y:  8.5 * 128, r: 310, seed: 9.60 }, // tavern table
-  { x:  7.0 * 128, y:  8.5 * 128, r: 290, seed: 0.83 }, // tavern centre
+  { x: 11.5 * TF1_T, y:  8.5 * TF1_T, r: 370, seed: 8.37 }, // bar counter
+  { x:  3.5 * TF1_T, y:  8.5 * TF1_T, r: 310, seed: 9.60 }, // tavern table
+  { x:  7.0 * TF1_T, y:  8.5 * TF1_T, r: 290, seed: 0.83 }, // tavern centre
 
   // ── Lower corridor (rows 10–11) ────────────────────────────────────────────
-  { x:  7.0 * 128, y: 10.5 * 128, r: 230, seed: 1.96 }, // dim hallway lamp
+  { x:  7.0 * TF1_T, y: 10.5 * TF1_T, r: 230, seed: 1.96 }, // dim hallway lamp
 
   // ── Lobby (rows 12–14) ─────────────────────────────────────────────────────
-  { x:  3.5 * 128, y: 13.0 * 128, r: 330, seed: 3.09 }, // lobby left
-  { x:  7.0 * 128, y: 13.0 * 128, r: 350, seed: 4.22 }, // lobby centre
-  { x: 10.5 * 128, y: 13.0 * 128, r: 310, seed: 5.45 }, // piano / lobby right
+  { x:  3.5 * TF1_T, y: 13.0 * TF1_T, r: 330, seed: 3.09 }, // lobby left
+  { x:  7.0 * TF1_T, y: 13.0 * TF1_T, r: 350, seed: 4.22 }, // lobby centre
+  { x: 10.5 * TF1_T, y: 13.0 * TF1_T, r: 310, seed: 5.45 }, // piano / lobby right
 ];
 
 // ── Flicker cache — recomputed every FLICKER_INTERVAL frames ─────────────────
