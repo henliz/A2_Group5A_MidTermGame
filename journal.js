@@ -5,6 +5,7 @@ class Journal {
     this.totalPages = 5;
 
     this.pages = [
+      { title: "FDL", baseImage: fdlPg, textEntries: [], hasNew: false },
       {
         title: "Innkeeper",
         baseImage: innkeeperPg,
@@ -13,7 +14,6 @@ class Journal {
       },
       { title: "Doctor", baseImage: doctorPg, textEntries: [], hasNew: false },
       { title: "RM", baseImage: rmPg, textEntries: [], hasNew: false },
-      { title: "FDL", baseImage: fdlPg, textEntries: [], hasNew: false },
       {
         title: "Evidence",
         baseImage: evidencePg,
