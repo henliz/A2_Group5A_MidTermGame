@@ -1,3 +1,5 @@
+//doctor.js
+
 const doctorDialogue = {
   name: "Doctor Krisia",
   opening: "Oh hi. Sorry, I'm still trying to process what happened.",
@@ -39,11 +41,13 @@ const doctor = new NPC(600, 450, doctorDialogue);
 doctor.journalPageIndex = 1;
 doctor.portraitKey = "doctor";
 doctor.currentEmotion = "idle";
-doctor.waypoints = [
-  { x: 600, y: 450 },
-  { x: 800, y: 450 },
-  { x: 800, y: 600 },
-  { x: 600, y: 600 },
-];
+
+// Doctor wanders the lower half of the inn — lobby (rows 12–14) and the
+// connecting tavern area (rows 8–9). She routes through the centre corridor
+// (rows 10–11) automatically via A*.
+// Slow, thoughtful pace — she's still processing everything.
+doctor.wanderBounds = { c0: 2, r0: 8, c1: 12, r1: 14 };
+doctor.patrolSpeed  = 0.9;   // slow
+doctor.idleDuration = 200;   // long pauses — standing and thinking
 
 window.doctor = doctor;
