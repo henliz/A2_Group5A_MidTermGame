@@ -116,8 +116,8 @@ class Journal {
     )
       this.prevPage();
     if (
-      mx > width * 0.29 + 650 &&
-      mx < width * 0.29 + 650 + 30 &&
+      mx > width * 0.28 + 650 &&
+      mx < width * 0.28 + 650 + 30 &&
       my > height / 2 &&
       my < height / 2 + 30
     )
