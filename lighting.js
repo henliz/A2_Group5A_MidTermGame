@@ -1,86 +1,65 @@
 // lighting.js
-// Atmospheric purple/blue tint over the world — old run-down inn, not a cave.
-// Every room and corridor has a light source. The overlay is a light colour wash,
-// not pitch darkness. Drawn in screen-space AFTER the world, BEFORE all UI.
+// Atmospheric purple/blue tint — drawn in screen-space AFTER the world, BEFORE UI.
+//
+// Cross-platform approach: no offscreen buffer, no destination-out.
+// destination-out has a known GPU compositing bug on Windows Chrome.
+// Instead: dark source-over overlay + screen-mode light gradients directly
+// on the main canvas. screen blend is universally supported.
 
-let lightingBuffer;
-
-// One light per room / area of the inn, in world pixels.
-// Positions derived from TF1_FLOOR_MASK layout (TF1_T = 128px per tile).
-// seed: unique offset so each light flickers independently via noise().
-// TF1_T is a global const from tavernFloor1.js (loaded first) — use it so
-// light positions stay aligned when the tile scale changes.
+// TF1_T is a global const from tavernFloor1.js (loaded first).
 const LIGHT_SOURCES = [
   // ── Top rooms ──────────────────────────────────────────────────────────────
-  { x:  3.5 * TF1_T, y:  0.7 * TF1_T, r: 210, seed: 0.11 }, // left bedroom
-  { x: 10.5 * TF1_T, y:  0.7 * TF1_T, r: 210, seed: 1.34 }, // right bedroom
+  { x:  3.5 * TF1_T, y:  0.7 * TF1_T, r: 210, seed: 0.11 },
+  { x: 10.5 * TF1_T, y:  0.7 * TF1_T, r: 210, seed: 1.34 },
 
-  // ── Upper connecting corridor (rows 2–3) ───────────────────────────────────
-  { x:  7.0 * TF1_T, y:  2.5 * TF1_T, r: 260, seed: 2.57 }, // upper hallway
+  // ── Upper corridor ─────────────────────────────────────────────────────────
+  { x:  7.0 * TF1_T, y:  2.5 * TF1_T, r: 260, seed: 2.57 },
 
-  // ── Main hall (rows 4–5) ───────────────────────────────────────────────────
-  { x:  3.0 * TF1_T, y:  4.5 * TF1_T, r: 340, seed: 3.21 }, // hall left
-  { x:  7.0 * TF1_T, y:  4.5 * TF1_T, r: 380, seed: 4.45 }, // hall centre (biggest)
-  { x: 11.0 * TF1_T, y:  4.5 * TF1_T, r: 320, seed: 5.68 }, // hall right
-  { x: 12.5 * TF1_T, y:  3.8 * TF1_T, r: 230, seed: 6.02 }, // office corner
+  // ── Main hall ──────────────────────────────────────────────────────────────
+  { x:  3.0 * TF1_T, y:  4.5 * TF1_T, r: 340, seed: 3.21 },
+  { x:  7.0 * TF1_T, y:  4.5 * TF1_T, r: 380, seed: 4.45 },
+  { x: 11.0 * TF1_T, y:  4.5 * TF1_T, r: 320, seed: 5.68 },
+  { x: 12.5 * TF1_T, y:  3.8 * TF1_T, r: 230, seed: 6.02 },
 
-  // ── Centre corridor (rows 6–7) ─────────────────────────────────────────────
-  { x:  7.0 * TF1_T, y:  6.5 * TF1_T, r: 230, seed: 7.14 }, // dim hallway lamp
+  // ── Centre corridor ────────────────────────────────────────────────────────
+  { x:  7.0 * TF1_T, y:  6.5 * TF1_T, r: 230, seed: 7.14 },
 
-  // ── Tavern / bar area (rows 8–9) ───────────────────────────────────────────
-  { x: 11.5 * TF1_T, y:  8.5 * TF1_T, r: 370, seed: 8.37 }, // bar counter
-  { x:  3.5 * TF1_T, y:  8.5 * TF1_T, r: 310, seed: 9.60 }, // tavern table
-  { x:  7.0 * TF1_T, y:  8.5 * TF1_T, r: 290, seed: 0.83 }, // tavern centre
+  // ── Tavern / bar ───────────────────────────────────────────────────────────
+  { x: 11.5 * TF1_T, y:  8.5 * TF1_T, r: 370, seed: 8.37 },
+  { x:  3.5 * TF1_T, y:  8.5 * TF1_T, r: 310, seed: 9.60 },
+  { x:  7.0 * TF1_T, y:  8.5 * TF1_T, r: 290, seed: 0.83 },
 
-  // ── Lower corridor (rows 10–11) ────────────────────────────────────────────
-  { x:  7.0 * TF1_T, y: 10.5 * TF1_T, r: 230, seed: 1.96 }, // dim hallway lamp
+  // ── Lower corridor ─────────────────────────────────────────────────────────
+  { x:  7.0 * TF1_T, y: 10.5 * TF1_T, r: 230, seed: 1.96 },
 
-  // ── Lobby (rows 12–14) ─────────────────────────────────────────────────────
-  { x:  3.5 * TF1_T, y: 13.0 * TF1_T, r: 330, seed: 3.09 }, // lobby left
-  { x:  7.0 * TF1_T, y: 13.0 * TF1_T, r: 350, seed: 4.22 }, // lobby centre
-  { x: 10.5 * TF1_T, y: 13.0 * TF1_T, r: 310, seed: 5.45 }, // piano / lobby right
+  // ── Lobby ──────────────────────────────────────────────────────────────────
+  { x:  3.5 * TF1_T, y: 13.0 * TF1_T, r: 330, seed: 3.09 },
+  { x:  7.0 * TF1_T, y: 13.0 * TF1_T, r: 350, seed: 4.22 },
+  { x: 10.5 * TF1_T, y: 13.0 * TF1_T, r: 310, seed: 5.45 },
 ];
 
-// ── Flicker cache — recomputed every FLICKER_INTERVAL frames ─────────────────
+// Flicker cache — recomputed every FLICKER_INTERVAL frames
 const FLICKER_INTERVAL = 3;
-let _flickerTick = 0;
-const _flickerF  = new Float32Array(LIGHT_SOURCES.length).fill(1.0);
+let _flickerTick   = 0;
+const _flickerF    = new Float32Array(LIGHT_SOURCES.length).fill(1.0);
 let   _flickerPlayer = 1.0;
 
-function lightingSetup() {
-  lightingBuffer = createGraphics(windowWidth, windowHeight);
-  lightingBuffer.noSmooth();
-}
+// No buffer needed — lighting draws directly on the main canvas
+function lightingSetup()   {}
+function lightingResized() {}
 
-function lightingResized() {
-  if (lightingBuffer) lightingBuffer.resizeCanvas(windowWidth, windowHeight);
-}
-
-// World → screen (matches scale(CAM_ZOOM); translate(-camX, -camY))
+// World → screen
 function _w2s(wx, wy) {
   return [(wx - camX) * CAM_ZOOM, (wy - camY) * CAM_ZOOM];
 }
 
-// Punch a soft radial hole in the darkness buffer
-function _lightCutout(ctx, sx, sy, r) {
+// Draw one screen-mode light circle (brightens whatever is beneath it)
+function _screenLight(ctx, sx, sy, r) {
   const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
-  g.addColorStop(0,    'rgba(255,255,255,1.00)');
-  g.addColorStop(0.20, 'rgba(255,255,255,0.95)');
-  g.addColorStop(0.50, 'rgba(255,255,255,0.70)');
-  g.addColorStop(0.75, 'rgba(255,255,255,0.20)');
-  g.addColorStop(1.0,  'rgba(255,255,255,0.00)');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(sx, sy, r, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// Single merged bloom (violet+teal in one gradient pass)
-function _bloom(ctx, sx, sy, r) {
-  const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
-  g.addColorStop(0,   'rgba(90, 80, 210, 0.18)');
-  g.addColorStop(0.5, 'rgba(50, 90, 190, 0.06)');
-  g.addColorStop(1,   'rgba(0,  0,  0,  0)');
+  g.addColorStop(0,    'rgba(140, 110, 170, 1)');
+  g.addColorStop(0.25, 'rgba(110, 85,  145, 0.8)');
+  g.addColorStop(0.55, 'rgba(70,  55,  105, 0.4)');
+  g.addColorStop(1,    'rgba(0,   0,   0,   0)');
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(sx, sy, r, 0, Math.PI * 2);
@@ -88,9 +67,9 @@ function _bloom(ctx, sx, sy, r) {
 }
 
 function drawLighting() {
-  if (!lightingBuffer || currentScene !== "GAME") return;
+  if (currentScene !== "GAME") return;
 
-  const ctx = lightingBuffer.drawingContext;
+  const ctx = drawingContext; // main canvas — no offscreen buffer
   const t   = frameCount * 0.016;
 
   // ── Refresh flicker cache every FLICKER_INTERVAL frames ───────────────────
@@ -102,44 +81,31 @@ function drawLighting() {
   }
   _flickerTick = (_flickerTick + 1) % FLICKER_INTERVAL;
 
-  // ── 1. Ambient overlay ─────────────────────────────────────────────────────
-  lightingBuffer.clear();
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = 'rgba(18, 8, 42, 0.55)';
-  ctx.fillRect(0, 0, width, height);
+  // ── 1. Dark ambient overlay (source-over — works everywhere) ───────────────
+  noStroke();
+  fill(18, 8, 42, 140); // 0.55 opacity
+  rect(0, 0, width, height);
 
-  // ── 2. Punch light holes ───────────────────────────────────────────────────
-  ctx.globalCompositeOperation = 'destination-out';
+  // ── 2. Brighten lit areas with screen-mode gradients ──────────────────────
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
 
-  // Player glow (always on-screen)
+  // Player carries a gentle personal glow
   const [ppx, ppy] = _w2s(player.px, player.py);
-  _lightCutout(ctx, ppx, ppy, 240 * _flickerPlayer * CAM_ZOOM);
+  _screenLight(ctx, ppx, ppy, 240 * _flickerPlayer * CAM_ZOOM);
 
-  // Inn lights — skip anything whose circle is fully off-screen
+  // Inn light sources — cull off-screen
   for (let i = 0; i < LIGHT_SOURCES.length; i++) {
     const src = LIGHT_SOURCES[i];
     const [sx, sy] = _w2s(src.x, src.y);
     const r = src.r * _flickerF[i] * CAM_ZOOM;
     if (sx + r < 0 || sx - r > width || sy + r < 0 || sy - r > height) continue;
-    _lightCutout(ctx, sx, sy, r);
+    _screenLight(ctx, sx, sy, r);
   }
 
-  // ── 3. Single bloom pass ───────────────────────────────────────────────────
-  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore(); // resets globalCompositeOperation to source-over
 
-  for (let i = 0; i < LIGHT_SOURCES.length; i++) {
-    const src = LIGHT_SOURCES[i];
-    const [sx, sy] = _w2s(src.x, src.y);
-    const r = src.r * _flickerF[i] * CAM_ZOOM * 1.2;
-    if (sx + r < 0 || sx - r > width || sy + r < 0 || sy - r > height) continue;
-    _bloom(ctx, sx, sy, r);
-  }
-
-  // ── 4. Blit to main canvas ─────────────────────────────────────────────────
-  ctx.globalCompositeOperation = 'source-over';
-  image(lightingBuffer, 0, 0);
-
-  // ── 5. Very gentle scene-wide purple breathe ──────────────────────────────
+  // ── 3. Very gentle scene-wide purple breathe ──────────────────────────────
   noStroke();
   const pulse = 4 + noise(t * 0.25) * 8;
   fill(45, 15, 85, pulse);

@@ -114,7 +114,10 @@ function preload() {
   journalFont = loadFont("assets/ReenieBeanie-Regular.ttf");
 
   prologueVideo = createVideo("assets/Prologue.mp4");
-  prologueVideo.hide(); // hide the default HTML video element
+  prologueVideo.hide();
+  // auto-skip to game if the video can't load or play (codec/browser issue)
+  prologueVideo.elt.onerror   = () => { currentScene = "GAME"; };
+  prologueVideo.elt.onstalled = () => { setTimeout(() => { if (currentScene === "PROLOGUE") currentScene = "GAME"; }, 3000); };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -295,6 +298,11 @@ function draw() {
     imageMode(CENTER);
     image(prologueVideo, width / 2, height / 2, width - 200, height);
     imageMode(CORNER);
+    // skip hint
+    fill(255, 255, 255, 140);
+    textAlign(RIGHT, BOTTOM);
+    textSize(14);
+    text("Press any key or click to skip", width - 20, height - 16);
     return;
   }
 
@@ -659,13 +667,10 @@ function keyPressed() {
     return;
   }
 
-  // silent skip — no text hint shown to player
   if (currentScene === "PROLOGUE") {
-    if (keyCode === ENTER) {
-      prologueVideo.stop();
-      currentScene = "GAME";
-      prologueVideo.hide();
-    }
+    prologueVideo.stop();
+    currentScene = "GAME";
+    prologueVideo.hide();
     return;
   }
 
@@ -736,6 +741,13 @@ function keyPressed() {
 }
 
 function mousePressed() {
+  if (currentScene === "PROLOGUE") {
+    prologueVideo.stop();
+    currentScene = "GAME";
+    prologueVideo.hide();
+    return;
+  }
+
   // Home screen — click "Press ENTER to start" row
   if (currentScene === "HOME") {
     const ty = height * 0.5 - 20;
