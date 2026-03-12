@@ -402,7 +402,7 @@ function windowResized() {
 function drawSpoonCounter() {
   let spoonSize = 70; // size of each spoon icon
   let gap = 0.5; // gap between spoons
-  let startX = width * 0.7; // left padding from screen edge
+  let startX = width * 0.65; // left padding from screen edge
   let startY = 10; // top padding from screen edge
 
   for (let i = 0; i < 7; i++) {
