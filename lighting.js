@@ -57,9 +57,9 @@ function _w2s(wx, wy) {
 function _lightCutout(ctx, sx, sy, r) {
   const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
   g.addColorStop(0,    'rgba(255,255,255,1.00)');
-  g.addColorStop(0.25, 'rgba(255,255,255,0.95)');
-  g.addColorStop(0.60, 'rgba(255,255,255,0.55)');
-  g.addColorStop(0.85, 'rgba(255,255,255,0.20)');
+  g.addColorStop(0.20, 'rgba(255,255,255,0.95)');
+  g.addColorStop(0.50, 'rgba(255,255,255,0.70)');
+  g.addColorStop(0.75, 'rgba(255,255,255,0.20)');
   g.addColorStop(1.0,  'rgba(255,255,255,0.00)');
   ctx.fillStyle = g;
   ctx.beginPath();
@@ -88,7 +88,7 @@ function drawLighting() {
   // ── 1. Light colour-wash ambient (inn, not cave) ───────────────────────────
   lightingBuffer.clear();
   ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = 'rgba(18, 8, 42, 0.38)'; // soft indigo wash — visible but not oppressive
+  ctx.fillStyle = 'rgba(18, 8, 42, 0.55)'; // moody indigo — atmospheric but inn-lit
   ctx.fillRect(0, 0, width, height);
 
   // ── 2. Punch light holes ───────────────────────────────────────────────────
@@ -102,7 +102,7 @@ function drawLighting() {
   // Inn lights — subtle flicker, never goes very dark (it's an inn, not a dungeon)
   for (const src of LIGHT_SOURCES) {
     const [sx, sy] = _w2s(src.x, src.y);
-    const f = 0.88 + noise(t + src.seed) * 0.12; // only 12% flicker range
+    const f = 0.82 + noise(t + src.seed) * 0.18; // 18% flicker — noticeable but not jarring
     _lightCutout(ctx, sx, sy, src.r * f * CAM_ZOOM);
   }
 
@@ -111,10 +111,10 @@ function drawLighting() {
 
   for (const src of LIGHT_SOURCES) {
     const [sx, sy] = _w2s(src.x, src.y);
-    const f = 0.88 + noise(t + src.seed + 0.5) * 0.12;
+    const f = 0.82 + noise(t + src.seed + 0.5) * 0.18;
     const r = src.r * f * CAM_ZOOM;
-    _colorBloom(ctx, sx, sy, r,        110, 70,  220, 0.14); // soft violet
-    _colorBloom(ctx, sx, sy, r * 1.3,   45, 110, 200, 0.07); // cool teal edge
+    _colorBloom(ctx, sx, sy, r,        110, 70,  220, 0.20); // soft violet
+    _colorBloom(ctx, sx, sy, r * 1.3,   45, 110, 200, 0.10); // cool teal edge
   }
 
   // ── 4. Blit to main canvas ─────────────────────────────────────────────────
