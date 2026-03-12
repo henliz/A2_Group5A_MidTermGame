@@ -601,8 +601,8 @@ function mousePressed() {
   if (
     mouseX > width - 60 &&
     mouseX < width - 20 &&
-    mouseY > 20 &&
-    mouseY < 60
+    mouseY > 80 &&
+    mouseY < 120
   ) {
     journal.toggle();
     return;
