@@ -47,6 +47,8 @@ let dialogueHoverButtonTextC;
 let dialogueDisabledButtonTextC;
 let journalTextC;
 
+let prologueVideo;
+
 function preload() {
   tf1Preload();
   clutterPreload();
@@ -104,6 +106,9 @@ function preload() {
 
   jersey10Font = loadFont("assets/Jersey10-Regular.ttf");
   journalFont = loadFont("assets/ReenieBeanie-Regular.ttf");
+
+  prologueVideo = createVideo("assets/Prologue.mp4");
+  prologueVideo.hide(); // hide the default HTML video element
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -275,6 +280,14 @@ function draw() {
     setTimeout(() => {
       currentScene = "GAME";
     }, 2000);
+    return;
+  }
+  // Prologue video
+  if (currentScene === "PROLOGUE") {
+    background(0);
+    imageMode(CENTER);
+    image(prologueVideo, width / 2, height / 2, width - 200, height);
+    imageMode(CORNER);
     return;
   }
 
@@ -482,10 +495,25 @@ function drawJournalIcon() {
 }
 
 function keyPressed() {
-  // START SCREEN
   if (currentScene === "HOME") {
     if (keyCode === ENTER) {
+      currentScene = "PROLOGUE";
+      prologueVideo.play();
+      // when video ends, automatically go to GAME
+      prologueVideo.elt.onended = () => {
+        currentScene = "GAME";
+        prologueVideo.hide();
+      };
+    }
+    return;
+  }
+
+  // silent skip — no text hint shown to player
+  if (currentScene === "PROLOGUE") {
+    if (keyCode === ENTER) {
+      prologueVideo.stop();
       currentScene = "GAME";
+      prologueVideo.hide();
     }
     return;
   }
