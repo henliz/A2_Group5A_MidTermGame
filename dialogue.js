@@ -120,20 +120,20 @@ function drawNameTag(boxX, boxY, boxW) {
     noStroke();
     rect(tagX, tagY, tagW, tagH, 4);
     fill(255);
-    textSize(45);
+    textSize(38);
     textAlign(CENTER, CENTER);
     text("Little Red", tagX + tagW / 2, tagY + tagH / 2.5);
   } else if (activeNPC && activeNPC.dialogue.name) {
     // NPC name tag on the LEFT
-    let tagW = textWidth(activeNPC.dialogue.name) + 140;
+    textSize(38); // set size first so textWidth measures correctly
+    let tagW = textWidth(activeNPC.dialogue.name) + 60;
     let tagX = boxX + 20;
     fill(168, 86, 21);
     noStroke();
     rect(tagX, tagY, tagW, tagH, 4);
     fill(255);
-    textSize(45);
-    textAlign(LEFT, CENTER);
-    text(activeNPC.dialogue.name, tagX + 12, tagY + tagH / 2.5);
+    textAlign(CENTER, CENTER);
+    text(activeNPC.dialogue.name, tagX + tagW / 2, tagY + tagH / 2.5);
   }
 }
 
