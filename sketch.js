@@ -431,9 +431,9 @@ function drawPrompt() {
 
   for (let npc of npcs) {
     if (npc.isPlayerNearby(player)) {
-      // convert NPC world position to screen position
-      let screenX = npc.x - camX;
-      let screenY = npc.y - camY;
+      // convert NPC world position to screen position (account for zoom)
+      let screenX = (npc.x - camX) * CAM_ZOOM;
+      let screenY = (npc.y - camY) * CAM_ZOOM;
 
       // draw a small dark pill-shaped box above the NPC
       let msg = "Press Enter to talk";
@@ -461,8 +461,8 @@ function drawPrompt() {
     // convert door world position to screen position
     let doorPos = getPropPosition(door1Layout);
     if (doorPos) {
-      let screenX = doorPos.actualX - camX;
-      let screenY = doorPos.actualY - camY;
+      let screenX = (doorPos.actualX - camX) * CAM_ZOOM;
+      let screenY = (doorPos.actualY - camY) * CAM_ZOOM;
       // draw a small dark pill-shaped box above the door
       let msg = "Press 'G' to go to bed";
       textSize(16);
