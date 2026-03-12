@@ -38,7 +38,7 @@ const runawayManDialogue = {
 };
 
 const runawayMan = new NPC(700, 500, runawayManDialogue);
-runawayMan.journalPageIndex = 2;
+runawayMan.journalPageIndex = 3;
 runawayMan.portraitKey = "runawayMan";
 runawayMan.currentEmotion = "idle";
 
@@ -46,8 +46,8 @@ runawayMan.currentEmotion = "idle";
 // He claims he was in his room all night, so keep him pacing the top half.
 // Fast, nervous pacing with short pauses — anxious and evasive.
 runawayMan.wanderBounds = { c0: 2, r0: 0, c1: 12, r1: 7 };
-runawayMan.patrolSpeed  = 2.0;  // fast, nervous
-runawayMan.idleDuration = 50;   // short pauses — can't stay still
+runawayMan.patrolSpeed = 2.0; // fast, nervous
+runawayMan.idleDuration = 50; // short pauses — can't stay still
 
 // Jerome's spritesheet row order is UP / DOWN / LEFT / RIGHT
 // (confirmed by pixel analysis — skin-pixel centroid positions per row).

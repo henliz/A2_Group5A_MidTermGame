@@ -42,7 +42,7 @@ const innkeeperDialogue = {
 };
 
 const innkeeper = new NPC(300, 400, innkeeperDialogue);
-innkeeper.journalPageIndex = 0;
+innkeeper.journalPageIndex = 1;
 innkeeper.portraitKey = "innkeeper";
 innkeeper.currentEmotion = "idle";
 
@@ -50,7 +50,7 @@ innkeeper.currentEmotion = "idle";
 // He routes through the centre corridor (rows 6–7) automatically via A*.
 // Brisk pace — he's busy managing the inn.
 innkeeper.wanderBounds = { c0: 2, r0: 4, c1: 12, r1: 9 };
-innkeeper.patrolSpeed  = 1.5;  // brisk
-innkeeper.idleDuration = 80;   // short pauses — always on the move
+innkeeper.patrolSpeed = 1.5; // brisk
+innkeeper.idleDuration = 80; // short pauses — always on the move
 
 window.innkeeper = innkeeper;

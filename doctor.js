@@ -38,7 +38,7 @@ const doctorDialogue = {
 };
 
 const doctor = new NPC(600, 450, doctorDialogue);
-doctor.journalPageIndex = 1;
+doctor.journalPageIndex = 2;
 doctor.portraitKey = "doctor";
 doctor.currentEmotion = "idle";
 
@@ -47,7 +47,7 @@ doctor.currentEmotion = "idle";
 // (rows 10–11) automatically via A*.
 // Slow, thoughtful pace — she's still processing everything.
 doctor.wanderBounds = { c0: 2, r0: 8, c1: 12, r1: 14 };
-doctor.patrolSpeed  = 0.9;   // slow
-doctor.idleDuration = 200;   // long pauses — standing and thinking
+doctor.patrolSpeed = 0.9; // slow
+doctor.idleDuration = 200; // long pauses — standing and thinking
 
 window.doctor = doctor;
