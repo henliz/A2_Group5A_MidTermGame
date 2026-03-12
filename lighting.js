@@ -39,6 +39,12 @@ const LIGHT_SOURCES = [
   { x: 10.5 * 128, y: 13.0 * 128, r: 310, seed: 5.45 }, // piano / lobby right
 ];
 
+// ── Flicker cache — recomputed every FLICKER_INTERVAL frames ─────────────────
+const FLICKER_INTERVAL = 3;
+let _flickerTick = 0;
+const _flickerF  = new Float32Array(LIGHT_SOURCES.length).fill(1.0);
+let   _flickerPlayer = 1.0;
+
 function lightingSetup() {
   lightingBuffer = createGraphics(windowWidth, windowHeight);
   lightingBuffer.noSmooth();
@@ -67,12 +73,12 @@ function _lightCutout(ctx, sx, sy, r) {
   ctx.fill();
 }
 
-// Soft coloured bloom layered on top of a cutout
-function _colorBloom(ctx, sx, sy, r, cr, cg, cb, a) {
+// Single merged bloom (violet+teal in one gradient pass)
+function _bloom(ctx, sx, sy, r) {
   const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
-  g.addColorStop(0,   `rgba(${cr},${cg},${cb},${a})`);
-  g.addColorStop(0.5, `rgba(${cr},${cg},${cb},${+(a * 0.3).toFixed(3)})`);
-  g.addColorStop(1,   `rgba(${cr},${cg},${cb},0)`);
+  g.addColorStop(0,   'rgba(90, 80, 210, 0.18)');
+  g.addColorStop(0.5, 'rgba(50, 90, 190, 0.06)');
+  g.addColorStop(1,   'rgba(0,  0,  0,  0)');
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(sx, sy, r, 0, Math.PI * 2);
@@ -85,36 +91,46 @@ function drawLighting() {
   const ctx = lightingBuffer.drawingContext;
   const t   = frameCount * 0.016;
 
-  // ── 1. Light colour-wash ambient (inn, not cave) ───────────────────────────
+  // ── Refresh flicker cache every FLICKER_INTERVAL frames ───────────────────
+  if (_flickerTick === 0) {
+    _flickerPlayer = 0.92 + noise(t + 9.9) * 0.08;
+    for (let i = 0; i < LIGHT_SOURCES.length; i++) {
+      _flickerF[i] = 0.82 + noise(t + LIGHT_SOURCES[i].seed) * 0.18;
+    }
+  }
+  _flickerTick = (_flickerTick + 1) % FLICKER_INTERVAL;
+
+  // ── 1. Ambient overlay ─────────────────────────────────────────────────────
   lightingBuffer.clear();
   ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = 'rgba(18, 8, 42, 0.55)'; // moody indigo — atmospheric but inn-lit
+  ctx.fillStyle = 'rgba(18, 8, 42, 0.55)';
   ctx.fillRect(0, 0, width, height);
 
   // ── 2. Punch light holes ───────────────────────────────────────────────────
   ctx.globalCompositeOperation = 'destination-out';
 
-  // Player carries a gentle ambient glow
+  // Player glow (always on-screen)
   const [ppx, ppy] = _w2s(player.px, player.py);
-  const pf = 0.92 + noise(t + 9.9) * 0.08;
-  _lightCutout(ctx, ppx, ppy, 240 * pf * CAM_ZOOM);
+  _lightCutout(ctx, ppx, ppy, 240 * _flickerPlayer * CAM_ZOOM);
 
-  // Inn lights — subtle flicker, never goes very dark (it's an inn, not a dungeon)
-  for (const src of LIGHT_SOURCES) {
+  // Inn lights — skip anything whose circle is fully off-screen
+  for (let i = 0; i < LIGHT_SOURCES.length; i++) {
+    const src = LIGHT_SOURCES[i];
     const [sx, sy] = _w2s(src.x, src.y);
-    const f = 0.82 + noise(t + src.seed) * 0.18; // 18% flicker — noticeable but not jarring
-    _lightCutout(ctx, sx, sy, src.r * f * CAM_ZOOM);
+    const r = src.r * _flickerF[i] * CAM_ZOOM;
+    if (sx + r < 0 || sx - r > width || sy + r < 0 || sy - r > height) continue;
+    _lightCutout(ctx, sx, sy, r);
   }
 
-  // ── 3. Soft coloured blooms (violet + teal hints) ─────────────────────────
+  // ── 3. Single bloom pass ───────────────────────────────────────────────────
   ctx.globalCompositeOperation = 'source-over';
 
-  for (const src of LIGHT_SOURCES) {
+  for (let i = 0; i < LIGHT_SOURCES.length; i++) {
+    const src = LIGHT_SOURCES[i];
     const [sx, sy] = _w2s(src.x, src.y);
-    const f = 0.82 + noise(t + src.seed + 0.5) * 0.18;
-    const r = src.r * f * CAM_ZOOM;
-    _colorBloom(ctx, sx, sy, r,        110, 70,  220, 0.20); // soft violet
-    _colorBloom(ctx, sx, sy, r * 1.3,   45, 110, 200, 0.10); // cool teal edge
+    const r = src.r * _flickerF[i] * CAM_ZOOM * 1.2;
+    if (sx + r < 0 || sx - r > width || sy + r < 0 || sy - r > height) continue;
+    _bloom(ctx, sx, sy, r);
   }
 
   // ── 4. Blit to main canvas ─────────────────────────────────────────────────
