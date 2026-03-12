@@ -2,22 +2,8 @@
 // Simple props layer for tavern. Draws in WORLD SPACE.
 // Uses multi-asset loading framework to manage many furniture/prop images.
 
-// ============================================================
-// ASSET STORAGE & ASSET LIST
-// ============================================================
+// clutterAssetList: Array defining all assets to load
 
-/**
- * clutterImages: Object to store all loaded PNG images
- * Each key corresponds to a named asset (e.g., "table", "chair", "lamp")
- */
-const clutterImages = {};
-
-const CLUTTER = []; // will hold placed props
-
-/**
- * clutterAssetList: Array defining all assets to load
- * Structure: { key: "name", path: "relative/path/to/image.png" }
- */
 const clutterAssetList = [
   //Lobby clutter
   {
@@ -138,6 +124,7 @@ const clutterAssetList = [
   },
 ];
 
+//Each Assets Positions
 const roomLayout = [
   // Tavern clutter setting
   {
@@ -338,17 +325,17 @@ const door1Layout = {
   interactRadius: 120, // radius (in pixels) where the player can interact
 };
 
-// ============================================================
 // HELPER: Get position and size for a prop
-// ============================================================
 
 function getPropPosition(f, worldX = 0, worldY = 0) {
   const T = window.TF1_T ?? 128;
   const img = f.img || clutterImages[f.asset];
   if (!img) return null;
 
-  const dw = img.width * (f.scale ?? 4);
-  const dh = img.height * (f.scale ?? 4);
+  // scale prop sprites proportionally with the tile size
+  const scaleFactor = (f.scale ?? 4) * (T / 128);
+  const dw = img.width * scaleFactor;
+  const dh = img.height * scaleFactor;
 
   const x = worldX + f.tileX * T;
   const y = worldY + f.tileY * T;
@@ -374,9 +361,7 @@ function isPlayerNearDoor1(player) {
   return d < (door1Layout.interactRadius || 80);
 }
 
-// ============================================================
 // COLLISON: Check if player collides with any clutter props. Returns true if collision detected.
-// ============================================================
 
 function checkCollision(playerNextX, playerNextY, playerR) {
   let radius = playerR;
