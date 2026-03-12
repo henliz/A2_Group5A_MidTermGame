@@ -15,8 +15,8 @@ const FRAME_W = 32;
 const FRAME_H = 32;
 const ANIM_SPEED = 7;
 const CHAR_SCALE = 2.0;
-const NPC_CHAR_SCALE = 1.7;  // NPCs drawn slightly smaller than the player
-const CAM_ZOOM = 1.4;        // world-space zoom (1.0 = no zoom)
+const NPC_CHAR_SCALE = 1.7; // NPCs drawn slightly smaller than the player
+const CAM_ZOOM = 1.4; // world-space zoom (1.0 = no zoom)
 
 const DIR = { down: 0, left: 1, right: 2, up: 3 };
 
@@ -116,8 +116,14 @@ function preload() {
   prologueVideo = createVideo("assets/Prologue.mp4");
   prologueVideo.hide();
   // auto-skip to game if the video can't load or play (codec/browser issue)
-  prologueVideo.elt.onerror   = () => { currentScene = "GAME"; };
-  prologueVideo.elt.onstalled = () => { setTimeout(() => { if (currentScene === "PROLOGUE") currentScene = "GAME"; }, 3000); };
+  prologueVideo.elt.onerror = () => {
+    currentScene = "GAME";
+  };
+  prologueVideo.elt.onstalled = () => {
+    setTimeout(() => {
+      if (currentScene === "PROLOGUE") currentScene = "GAME";
+    }, 3000);
+  };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -308,7 +314,7 @@ function draw() {
 
   if (!journal.isOpen) {
     updatePlayer();
-    camX = lerp(camX, player.px - width  / (2 * CAM_ZOOM), 0.14);
+    camX = lerp(camX, player.px - width / (2 * CAM_ZOOM), 0.14);
     camY = lerp(camY, player.py - height / (2 * CAM_ZOOM), 0.14);
   }
 
@@ -428,8 +434,11 @@ function drawSpoonCounter() {
 
   // How many spoons will the hovered option cost?
   let previewCost = 0;
-  if ((dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") &&
-      selectedOption !== -1 && activeNPC) {
+  if (
+    (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") &&
+    selectedOption !== -1 &&
+    activeNPC
+  ) {
     const opt = activeNPC.dialogue.options[selectedOption];
     if (opt) previewCost = opt.cost;
   }
@@ -437,9 +446,10 @@ function drawSpoonCounter() {
   for (let i = 0; i < 7; i++) {
     const x = startX + i * (spoonSize + gap);
     // spoons in the range [spoonsRemaining - previewCost, spoonsRemaining) will be spent
-    const willBeSpent = previewCost > 0 &&
-                        i >= spoonsRemaining - previewCost &&
-                        i < spoonsRemaining;
+    const willBeSpent =
+      previewCost > 0 &&
+      i >= spoonsRemaining - previewCost &&
+      i < spoonsRemaining;
 
     if (willBeSpent) {
       // all cost spoons bob together, slowly
@@ -490,8 +500,11 @@ function drawPrompt() {
 
       npcPromptBounds = { x: msgX, y: msgY, w: msgW, h: msgH, npc };
 
-      const hoveringPrompt = mouseX > msgX && mouseX < msgX + msgW &&
-                             mouseY > msgY && mouseY < msgY + msgH;
+      const hoveringPrompt =
+        mouseX > msgX &&
+        mouseX < msgX + msgW &&
+        mouseY > msgY &&
+        mouseY < msgY + msgH;
 
       fill(hoveringPrompt ? 40 : 0, 0, 0, 180);
       noStroke();
@@ -538,11 +551,10 @@ function drawJournalIcon() {
   const ix = width - iw - 16;
   const iy = 50;
 
-  const hoveringJournal = mouseX > ix && mouseX < ix + iw &&
-                          mouseY > iy && mouseY < iy + ih;
-  const bobY = (journal.hasUnread || hoveringJournal)
-    ? sin(frameCount * 0.06) * 3
-    : 0;
+  const hoveringJournal =
+    mouseX > ix && mouseX < ix + iw && mouseY > iy && mouseY < iy + ih;
+  const bobY =
+    journal.hasUnread || hoveringJournal ? sin(frameCount * 0.06) * 3 : 0;
 
   // journal image: always a slight black outline, then gold glow when unread
   drawingContext.shadowColor = "rgba(0, 0, 0, 0.85)";
@@ -576,7 +588,6 @@ function drawJournalIcon() {
     fill(210, 50, 50);
     ellipse(ix + 8, iy + 8 + bobY, 14, 14);
   }
-
 }
 
 function drawDayCounter() {
@@ -593,10 +604,14 @@ function drawDayCounter() {
 function isMouseOverNPC(npc) {
   const wx = mouseX / CAM_ZOOM + camX;
   const wy = mouseY / CAM_ZOOM + camY;
-  const hw = (npc.spriteFrameW || 48) * NPC_CHAR_SCALE / 2;
-  const hh = (npc.spriteFrameH || 48) * NPC_CHAR_SCALE / 2;
-  return wx > npc.x - hw && wx < npc.x + hw &&
-         wy > npc.y - 8 - hh && wy < npc.y - 8 + hh;
+  const hw = ((npc.spriteFrameW || 48) * NPC_CHAR_SCALE) / 2;
+  const hh = ((npc.spriteFrameH || 48) * NPC_CHAR_SCALE) / 2;
+  return (
+    wx > npc.x - hw &&
+    wx < npc.x + hw &&
+    wy > npc.y - 8 - hh &&
+    wy < npc.y - 8 + hh
+  );
 }
 
 function updateHoverCursor() {
@@ -611,14 +626,28 @@ function updateHoverCursor() {
   // NPC talk prompt pill
   if (npcPromptBounds) {
     const b = npcPromptBounds;
-    if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h)
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    )
       hovering = true;
   }
 
   // Dialogue box (advance / typewriter-skip click target)
-  if (dialogueBoxBounds && dialoguePhase !== "choosing" && dialoguePhase !== "repeat-choosing") {
+  if (
+    dialogueBoxBounds &&
+    dialoguePhase !== "choosing" &&
+    dialoguePhase !== "repeat-choosing"
+  ) {
     const b = dialogueBoxBounds;
-    if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h)
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    )
       hovering = true;
   }
 
@@ -633,7 +662,12 @@ function updateHoverCursor() {
     const visibleIndices = getVisibleOptionIndices();
     for (let i = 0; i < visibleIndices.length; i++) {
       const btnY = startY + i * gap;
-      if (mouseX > btnX && mouseX < btnX + btnW && mouseY > btnY && mouseY < btnY + btnH) {
+      if (
+        mouseX > btnX &&
+        mouseX < btnX + btnW &&
+        mouseY > btnY &&
+        mouseY < btnY + btnH
+      ) {
         hovering = true;
         selectedOption = visibleIndices[i];
         break;
@@ -644,13 +678,17 @@ function updateHoverCursor() {
   // NPC sprites (world-space hit test)
   if (dialoguePhase === "closed" && currentScene === "GAME") {
     for (const npc of npcs) {
-      if (isMouseOverNPC(npc)) { hovering = true; break; }
+      if (isMouseOverNPC(npc)) {
+        hovering = true;
+        break;
+      }
     }
   }
 
   const clickCursor = "url('assets/cursor-click.png') 4 4, auto";
   const defaultCursor = "url('assets/cursor-default.png') 4 4, auto";
-  document.body.style.cursor = (hovering || mouseIsPressed) ? clickCursor : defaultCursor;
+  document.body.style.cursor =
+    hovering || mouseIsPressed ? clickCursor : defaultCursor;
 }
 
 function keyPressed() {
@@ -696,7 +734,8 @@ function keyPressed() {
 
   if (keyCode === ENTER) {
     // If text is still animating, skip to full text instead of advancing
-    const choosingPhase = dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing";
+    const choosingPhase =
+      dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing";
     if (!typewriterDone && dialoguePhase !== "closed" && !choosingPhase) {
       skipTypewriter();
       return;
@@ -737,7 +776,6 @@ function keyPressed() {
       closeDialogue();
     }
   }
-
 }
 
 function mousePressed() {
@@ -763,10 +801,10 @@ function mousePressed() {
   }
 
   if (
-    mouseX > width - 60 &&
-    mouseX < width - 20 &&
-    mouseY > 80 &&
-    mouseY < 120
+    mouseX > width - 76 &&
+    mouseX < width - 16 &&
+    mouseY > 50 &&
+    mouseY < 110
   ) {
     journal.toggle();
     return;
@@ -780,7 +818,12 @@ function mousePressed() {
   // NPC talk prompt click
   if (npcPromptBounds) {
     const b = npcPromptBounds;
-    if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    ) {
       openDialogue(b.npc);
       return;
     }
@@ -797,9 +840,18 @@ function mousePressed() {
   }
 
   // Dialogue box click — same logic as pressing Enter (skips typewriter first)
-  if (dialogueBoxBounds && dialoguePhase !== "choosing" && dialoguePhase !== "repeat-choosing") {
+  if (
+    dialogueBoxBounds &&
+    dialoguePhase !== "choosing" &&
+    dialoguePhase !== "repeat-choosing"
+  ) {
     const b = dialogueBoxBounds;
-    if (mouseX > b.x && mouseX < b.x + b.w && mouseY > b.y && mouseY < b.y + b.h) {
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    ) {
       if (!typewriterDone) {
         skipTypewriter();
         return;
@@ -814,7 +866,12 @@ function mousePressed() {
         dialoguePhase = "monologue";
         startTypewriter(chosenOption.monologue);
       } else if (dialoguePhase === "monologue") {
-        if (!chosenOption || spoonsRemaining === 0 || chosenOption.cost === 0 || chosenOption.cost === -1) {
+        if (
+          !chosenOption ||
+          spoonsRemaining === 0 ||
+          chosenOption.cost === 0 ||
+          chosenOption.cost === -1
+        ) {
           closeDialogue();
         } else {
           dialoguePhase = "repeat";

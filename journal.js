@@ -108,11 +108,16 @@ class Journal {
 
   handleClick(mx, my) {
     if (!this.isOpen) return;
-    if (mx > 110 && mx < 140 && my > height / 2 && my < height / 2 + 30)
+    if (
+      mx > width * 0.28 &&
+      mx < width * 0.28 + 30 &&
+      my > height / 2 &&
+      my < height / 2 + 30
+    )
       this.prevPage();
     if (
-      mx > width - 140 &&
-      mx < width - 110 &&
+      mx > width * 0.29 + 650 &&
+      mx < width * 0.29 + 650 + 30 &&
       my > height / 2 &&
       my < height / 2 + 30
     )
