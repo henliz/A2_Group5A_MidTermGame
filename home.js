@@ -29,6 +29,23 @@ function drawHomePage() {
   const logoShiftX = offsetX * 10;
   const logoShiftY = offsetY * 8;
 
+  // bg drawn slightly oversized so parallax doesn't show edges
+  const oversize = 60;
+  image(
+    homeBgImg,
+    -oversize / 2 + bgShiftX,
+    -oversize / 2 + bgShiftY,
+    width + oversize,
+    height + oversize,
+  );
+
+  // black gradient — full black at top, transparent at 50% down
+  const grad = drawingContext.createLinearGradient(0, 0, 0, height * 0.5);
+  grad.addColorStop(0, "rgba(0,0,0,0.88)");
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  drawingContext.fillStyle = grad;
+  drawingContext.fillRect(0, 0, width, height * 0.5);
+
   // logo — large, with subtle parallax float
   if (logoImg) {
     const logoW = min(width * 0.72, 880);
@@ -72,26 +89,6 @@ function drawHomePage() {
     boxWidth - padding * 2,
     boxHeight - padding * 2,
   );
-
-  fill("rgba(0, 0, 0, 0.25)");
-  rect(0, 0, width, height);
-
-  // bg drawn slightly oversized so parallax doesn't show edges
-  const oversize = 60;
-  image(
-    homeBgImg,
-    -oversize / 2 + bgShiftX,
-    -oversize / 2 + bgShiftY,
-    width + oversize,
-    height + oversize,
-  );
-
-  // black gradient — full black at top, transparent at 50% down
-  const grad = drawingContext.createLinearGradient(0, 0, 0, height * 0.5);
-  grad.addColorStop(0, "rgba(0,0,0,0.88)");
-  grad.addColorStop(1, "rgba(0,0,0,0)");
-  drawingContext.fillStyle = grad;
-  drawingContext.fillRect(0, 0, width, height * 0.5);
 }
 
 function drawEndPage() {
