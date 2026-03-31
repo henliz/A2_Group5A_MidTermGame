@@ -111,11 +111,11 @@ function preload() {
   uiBtnDisabled = loadImage("assets/ui elements/Dialogue choice disabled.png");
 
   jersey10Font = loadFont("assets/Jersey10-Regular.ttf");
-  journalFont = loadFont("assets/ReenieBeanie-Regular.ttf");
+  journalFont = loadFont("assets/Margarine-Regular.ttf");
 
   prologueVideo = createVideo("assets/Prologue.mp4"); //reference [4], [5]
   prologueVideo.hide();
-  // auto-skip to game if the video can't load or play (codec/browser issue)
+  // auto-skip to game if the video can't load or play (codec/browser ssue)
   prologueVideo.elt.onerror = () => {
     currentScene = "GAME";
   };
