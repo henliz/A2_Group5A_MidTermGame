@@ -1,9 +1,9 @@
 //innkeeper.js
 
 const innkeeperDialogue = {
-  name: "Mrs. Gustall",
+  name: "Innkeeper",
   exitMonologue:
-    "She seems too stressed to talk further… maybe I should try someone else.",
+    "He seems too stressed to talk further… maybe I should try someone else.",
   opening:
     "Tsk, this is terrible. My inn's reputation will be ruined… What do you want girl?",
   repeatLine: "What is the issue? I am busy right now.",
@@ -14,8 +14,7 @@ const innkeeperDialogue = {
       cost: 2,
       playerLine: "I just wanted to know what happened, when you found her",
       npcResponse:
-        "What I saw? I heard a scream, came out, and she was already —",
-      npcResponse2: "Just stay out of the way and let me handle this.",
+        "What I saw? I heard a scream and found Front Desk Lady…dead. Don't ask me more question troublemaker, I have guests to manage!",
       monologue:
         "She cut herself off. She was going to say something and decided not to. I don't know if pushing further would help or just make her angrier at me.",
       notebookEntry:
@@ -28,15 +27,6 @@ const innkeeperDialogue = {
       npcResponse: "'Of course not… Someone is dead'",
       monologue:
         "That was the wrong question. Or maybe there wasn't a right one. I should have asked something real while I had the chance.",
-      notebookEntry: null,
-    },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "'Sorry…never mind'",
-      npcResponse: "If you're not helping, don't get in the way.",
-      monologue:
-        "I had something to ask and I lost it the second she looked at me. Now I'm standing here and she's already looking through me like I'm not worth the attention. Maybe that's better. Maybe being invisible is safer right now….",
       notebookEntry: null,
     },
   ],

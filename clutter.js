@@ -131,48 +131,72 @@ const clutterAssetList = [
     key: "cabinet2",
     path: "assets/cabinet-2.png",
   },
+  {
+    key: "phone",
+    path: "assets/objects/phone.png",
+  },
+  {
+    key: "necklace",
+    path: "assets/objects/necklace.png",
+  },
+  {
+    key: "certificate",
+    path: "assets/objects/certificate.png",
+  },
+  {
+    key: "newsclipping",
+    path: "assets/objects/newsclipping.png",
+  },
+  {
+    key: "crumplenote",
+    path: "assets/objects/CrumpleNote.png",
+  },
+  {
+    key: "medicinalbook",
+    path: "assets/objects/Medicinal_Book.png",
+  },
 ];
 
 const roomLayout = [
   // Tavern clutter setting
   {
     asset: "table1",
-    tileX: 2.5,
+    tileX: 2.6,
     tileY: 7.5,
     scale: 4,
     anchor: "top-left",
   },
   {
     asset: "counter1",
-    tileX: 9.5,
+    tileX: 10,
     tileY: 8,
-    scale: 4,
+    scale: 3,
     anchor: "top-right",
   },
   {
     asset: "pillar",
-    tileX: 11,
+    tileX: 10.8,
     tileY: 9,
-    scale: 3,
+    scale: 4,
     anchor: "bottom",
   },
   {
     asset: "stool1",
-    tileX: 10.5,
+    tileX: 10,
     tileY: 6.8,
     scale: 3,
     anchor: "top-left",
   },
   {
     asset: "stool2",
-    tileX: 9.8,
+    tileX: 9.5,
     tileY: 6.8,
     scale: 3,
     anchor: "top-left",
   },
   {
     asset: "stool3",
-    tileX: 11,
+    tileX: 10.7,
     tileY: 6.8,
     scale: 3,
     anchor: "top-left",
@@ -182,21 +206,21 @@ const roomLayout = [
   {
     asset: "bigtable1",
     tileX: 3,
-    tileY: 13.3,
-    scale: 7,
+    tileY: 13,
+    scale: 6,
     anchor: "top-left",
   },
   {
     asset: "piano",
     tileX: 10,
-    tileY: 13.6,
+    tileY: 13.4,
     scale: 5,
     anchor: "top-left",
   },
   {
     asset: "pianochair1",
     tileX: 10.4,
-    tileY: 14.3,
+    tileY: 14.2,
     scale: 4,
     anchor: "top-left",
   },
@@ -210,21 +234,21 @@ const roomLayout = [
   {
     asset: "sofa1",
     tileX: 10,
-    tileY: 12,
+    tileY: 11.8,
     scale: 6,
     anchor: "top-left",
   },
 
   {
     asset: "shelf1",
-    tileX: 2.8,
+    tileX: 2.6,
     tileY: 11.5,
     scale: 4.3,
     anchor: "top-left",
   },
   {
     asset: "sofa2",
-    tileX: 3.7,
+    tileX: 3.5,
     tileY: 12,
     scale: 6,
     anchor: "top-left",
@@ -234,30 +258,30 @@ const roomLayout = [
   {
     asset: "bed1",
     tileX: 1.6,
-    tileY: 4,
-    scale: 6,
+    tileY: 3.8,
+    scale: 6.2,
     anchor: "top-left",
   },
   {
     asset: "cabinet1",
     tileX: 2.6,
     tileY: 3.6,
-    scale: 4,
+    scale: 4.3,
     anchor: "bottom",
   },
 
   //Room 2 clutter setting
   {
     asset: "bed2",
-    tileX: 10.7,
-    tileY: 0.7,
+    tileX: 10.4,
+    tileY: 0.2,
     scale: 6,
     anchor: "bottom",
   },
   {
     asset: "shelf3",
-    tileX: 9.6,
-    tileY: 0,
+    tileX: 9,
+    tileY: -0.2,
     scale: 6,
     anchor: "bottom",
   },
@@ -266,7 +290,7 @@ const roomLayout = [
   {
     asset: "bed3",
     tileX: 2.6,
-    tileY: 0.6,
+    tileY: 0.2,
     scale: 5,
     anchor: "bottom",
   },
@@ -281,52 +305,106 @@ const roomLayout = [
   //office clutter setting
   {
     asset: "desk",
-    tileX: 11.8,
+    tileX: 11.5,
     tileY: 5,
     scale: 7,
     anchor: "top-left",
   },
   {
     asset: "deskchair",
-    tileX: 11.3,
+    tileX: 11,
     tileY: 5.1,
     scale: 4,
     anchor: "top-left",
   },
   {
     asset: "painting",
-    tileX: 9.5,
+    tileX: 9.4,
     tileY: 2.5,
     scale: 4,
     anchor: "bottom",
   },
   {
     asset: "bigtable2",
-    tileX: 10.5,
+    tileX: 11,
     tileY: 3.7,
     scale: 4,
     anchor: "top-left",
   },
   {
     asset: "TV",
-    tileX: 10.6,
+    tileX: 11.1,
     tileY: 3.5,
     scale: 3,
     anchor: "top-left",
   },
   {
     asset: "cabinet2",
-    tileX: 9.8,
+    tileX: 10.5,
     tileY: 3.7,
     scale: 3,
     anchor: "top-left",
+  },
+  //object phone
+  {
+    asset: "phone",
+    tileX: 3.2,
+    tileY: 13.2,
+    scale: 0.2,
+    anchor: "top-left",
+    glow: true,
+  },
+  //object necklace
+  {
+    asset: "necklace",
+    tileX: 2.3,
+    tileY: 12,
+    scale: 0.2,
+    anchor: "top-left",
+    glow: true,
+  },
+  //object certificate
+  {
+    asset: "certificate",
+    tileX: 9.3, //11
+    tileY: 3.8, //4
+    scale: 0.2,
+    anchor: "top-left",
+    glow: true,
+  },
+  //object newsclipping
+  {
+    asset: "newsclipping",
+    tileX: 11.1,
+    tileY: 14.3,
+    scale: 0.2,
+    anchor: "top-left",
+    glow: true,
+  },
+  //object crumplenote
+  {
+    asset: "crumplenote",
+    tileX: 5,
+    tileY: 4.2,
+    scale: 0.2,
+    anchor: "top-left",
+    glow: true,
+  },
+  //object medicinalbook
+  {
+    asset: "medicinalbook",
+    tileX: 11,
+    tileY: 12,
+    scale: 0.15,
+    anchor: "top-left",
+    glow: true,
   },
 ];
 
 //Little Red Room Door setting
 const door1Layout = {
   asset: "door1",
-  tileX: 7.3,
+  tileX: 6.8,
   tileY: 1.1,
   scale: 5,
   anchor: "bottom",
@@ -434,6 +512,7 @@ function clutterSetup() {
       tileY: item.tileY,
       scale: window.TF1_SCALE ?? item.scale ?? 4,
       anchor: item.anchor || "bottom",
+      glow: item.glow || false,
     });
   }
 }
@@ -447,6 +526,25 @@ function clutterDraw(worldX = 0, worldY = 0) {
 
     const pos = getPropPosition(p, worldX, worldY);
     if (!pos) continue;
+
+    // Draw glow effect if enabled
+    if (p.glow) {
+      push();
+      // Calculate center of the object
+      const centerX = pos.actualX + pos.dw / 2;
+      const centerY = pos.actualY + pos.dh / 2;
+      const maxRadius = Math.max(pos.dw, pos.dh) * 0.8; // Slightly larger than the object
+
+      // Draw multiple circles with decreasing opacity for glow effect
+      for (let i = 0; i < 5; i++) {
+        const radius = maxRadius * (1 - i * 0.1);
+        const alpha = 50 - i * 10; // Decreasing alpha
+        fill(255, 255, 200, alpha); // Soft yellow-white glow
+        noStroke();
+        ellipse(centerX, centerY, radius * 2, radius * 2);
+      }
+      pop();
+    }
 
     image(p.img, pos.actualX, pos.actualY, pos.dw, pos.dh);
   }

@@ -230,10 +230,7 @@ function drawDialogueText(boxX, boxY, boxW, boxH) {
   if (dialoguePhase === "repeat" || dialoguePhase === "repeat-choosing") {
     text(revealed, textX, boxY + 40, textW, boxH - 80);
   }
-  if (
-    (dialoguePhase === "response" || dialoguePhase === "response2") &&
-    chosenOption
-  ) {
+  if (dialoguePhase === "response" && chosenOption) {
     text(revealed, textX, boxY + 40, textW, boxH - 80);
   }
 }
@@ -378,8 +375,6 @@ function confirmChoice() {
 
   dialoguePhase = "response";
   startTypewriter(option.npcResponse);
-  // if there's a second NPC line, store it for after the first is dismissed
-  pendingNpcResponse2 = option.npcResponse2 || null;
 }
 
 function bedtime() {

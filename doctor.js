@@ -3,9 +3,8 @@
 const doctorDialogue = {
   name: "Doctor Krisia",
   exitMonologue: "She looks like she needs space… I shouldn't push it.",
-  opening:
-    "I keep thinking I should be doing something useful. That's the instinct, isn't it? Something happens and you want to fix it. There's nothing to fix around here.",
-  repeatLine: "Hello Again.",
+  opening: "Oh hi. Sorry, I'm still trying to process what happened.",
+  repeatLine: "I don't really have anything else to say right now.",
   hesitationLine: "I'm too drained to approach her right now…",
   options: [
     {
@@ -28,15 +27,6 @@ const doctorDialogue = {
         "Barely. I tried to, but you can't really shake the feeling after the scream. You're the one who just arrived, aren't you? That must feel awful. Being new to all of this.",
       monologue:
         "She turned it back to me. I don't know if that's kindness or deflection. I said yes and didn't follow up and now I'm not sure which one it was.",
-      notebookEntry: null,
-    },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "..Hi",
-      npcResponse: "Hi",
-      monologue:
-        "That was so awkward. I got lost in thought trying to say something to her and now I'm at the other side of the room. Maybe I should try talking with someone else…",
       notebookEntry: null,
     },
   ],

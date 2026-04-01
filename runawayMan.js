@@ -3,9 +3,8 @@
 const runawayManDialogue = {
   name: "Mysterious Man",
   exitMonologue: "He's too on edge… I don't want to make things worse.",
-  opening:
-    "What now? … I already know what you're going to ask. Everyone's asking the same thing. I was in my room. End of story.",
-  repeatLine: "You again?",
+  opening: "Everyone's on edge… what do you want?",
+  repeatLine: "…I already said what I had to say.",
   hesitationLine: "I can't deal with his attitude right now, not like this…",
   options: [
     {
@@ -27,15 +26,6 @@ const runawayManDialogue = {
       npcResponse: "You don't say. Don't drag me into whatever you're doing.",
       monologue:
         "Whatever I'm doing. Like he already knows I'm trying to figure something out. I didn't give him anything and he still saw through it. Or maybe he says that to everyone.",
-      notebookEntry: null,
-    },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "Sorry…I was just passing by",
-      npcResponse: "Sure you were",
-      monologue:
-        "He didn't believe me. Why would he. I stopped directly in front of him and then apologized for existing near him. He's already decided I'm suspicious or irrelevant and I gave him nothing to think otherwise. I don't know which one is worse right now.",
       notebookEntry: null,
     },
   ],
