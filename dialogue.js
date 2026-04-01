@@ -3,6 +3,7 @@ let activeNPC = null;
 let selectedOption = 0; // which button is highlighted (0, 1, 2)
 let spoonsRemaining = 7; // spoon budget for the day
 let chosenOption = null; // stores the option the player picked
+let pendingNpcResponse2 = null;
 const tooTiredLine = "Gosh… I couldn't bring myself to ask them that."; // dialogue for when you don't have enough spoons to choose a dialogue option
 
 // Exposed dialogue box bounds so sketch.js can hit-test clicks/hover
