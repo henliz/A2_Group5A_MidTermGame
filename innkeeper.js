@@ -1,36 +1,43 @@
 //innkeeper.js
 
 const innkeeperDialogue = {
-  name: "Innkeeper",
+  name: "Mrs. Gustall",
   exitMonologue:
-    "He seems too stressed to talk further… maybe I should try someone else.",
+    "She seems too stressed to talk further… maybe I should try someone else.",
   opening:
-    "Tsk, this is terrible. My inn's reputation will be ruined… What do you want, girl?",
-  repeatLine:
-    "I'm busy. Don't bother me unless you have something useful to say.",
+    "Tsk, this is terrible. My inn's reputation will be ruined… What do you want girl?",
+  repeatLine: "What is the issue? I am busy right now.",
   hesitationLine: "I don't have the energy to deal with them right now…",
   options: [
     {
       id: "A",
-      cost: 3,
-      playerLine:
-        "I just wanted to know what happened last night. Can you tell me what you saw?",
+      cost: 2,
+      playerLine: "I just wanted to know what happened, when you found her",
       npcResponse:
-        "What I saw? I heard a scream and found Front Desk Lady…dead. Don't ask me more question troublemaker, I have guests to manage!",
+        "What I saw? I heard a scream, came out, and she was already —",
+      npcResponse2: "Just stay out of the way and let me handle this.",
       monologue:
-        "Should I have phrased that differently? He probably thinks I'm nosy…",
+        "She cut herself off. She was going to say something and decided not to. I don't know if pushing further would help or just make her angrier at me.",
       notebookEntry:
-        "Innkeeper heard the scream but claims to know nothing more.",
+        "Heard the scream before finding her. Knows more than she's saying. Doesn't want guests involved.",
     },
     {
       id: "B",
-      cost: 2,
-      playerLine: "…Are you okay?",
-      npcResponse: "Of course not. Someone is dead in my Inn.",
+      cost: 1,
+      playerLine: "'Are you okay?'",
+      npcResponse: "'Of course not… Someone is dead'",
       monologue:
-        "At least he didn't yell at me this time. Maybe it wasn't too awkward.",
-      notebookEntry:
-        "Innkeeper seems more distressed about the Inn's reputation than the death itself.",
+        "That was the wrong question. Or maybe there wasn't a right one. I should have asked something real while I had the chance.",
+      notebookEntry: null,
+    },
+    {
+      id: "C",
+      cost: 0,
+      playerLine: "'Sorry…never mind'",
+      npcResponse: "If you're not helping, don't get in the way.",
+      monologue:
+        "I had something to ask and I lost it the second she looked at me. Now I'm standing here and she's already looking through me like I'm not worth the attention. Maybe that's better. Maybe being invisible is safer right now….",
+      notebookEntry: null,
     },
   ],
 };

@@ -844,6 +844,15 @@ function keyPressed() {
         dialoguePhase = "repeat-choosing";
       }
     } else if (dialoguePhase === "response") {
+      if (pendingNpcResponse2) {
+        dialoguePhase = "response2";
+        startTypewriter(pendingNpcResponse2);
+        pendingNpcResponse2 = null;
+      } else {
+        dialoguePhase = "monologue";
+        startTypewriter(chosenOption.monologue);
+      }
+    } else if (dialoguePhase === "response2") {
       dialoguePhase = "monologue";
       startTypewriter(chosenOption.monologue);
     } else if (dialoguePhase === "monologue") {
@@ -970,6 +979,15 @@ function mousePressed() {
         if (spoonsRemaining === 0) closeDialogue();
         else dialoguePhase = "repeat-choosing";
       } else if (dialoguePhase === "response") {
+        if (pendingNpcResponse2) {
+          dialoguePhase = "response2";
+          startTypewriter(pendingNpcResponse2);
+          pendingNpcResponse2 = null;
+        } else {
+          dialoguePhase = "monologue";
+          startTypewriter(chosenOption.monologue);
+        }
+      } else if (dialoguePhase === "response2") {
         dialoguePhase = "monologue";
         startTypewriter(chosenOption.monologue);
       } else if (dialoguePhase === "monologue") {

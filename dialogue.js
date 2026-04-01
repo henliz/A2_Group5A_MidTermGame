@@ -3,6 +3,7 @@ let activeNPC = null;
 let selectedOption = 0; // which button is highlighted (0, 1, 2)
 let spoonsRemaining = 7; // spoon budget for the day
 let chosenOption = null; // stores the option the player picked
+let pendingNpcResponse2 = null;
 const tooTiredLine = "Gosh… I couldn't bring myself to ask them that."; // dialogue for when you don't have enough spoons to choose a dialogue option
 
 // Exposed dialogue box bounds so sketch.js can hit-test clicks/hover
@@ -229,7 +230,10 @@ function drawDialogueText(boxX, boxY, boxW, boxH) {
   if (dialoguePhase === "repeat" || dialoguePhase === "repeat-choosing") {
     text(revealed, textX, boxY + 40, textW, boxH - 80);
   }
-  if (dialoguePhase === "response" && chosenOption) {
+  if (
+    (dialoguePhase === "response" || dialoguePhase === "response2") &&
+    chosenOption
+  ) {
     text(revealed, textX, boxY + 40, textW, boxH - 80);
   }
 }
@@ -374,6 +378,8 @@ function confirmChoice() {
 
   dialoguePhase = "response";
   startTypewriter(option.npcResponse);
+  // if there's a second NPC line, store it for after the first is dismissed
+  pendingNpcResponse2 = option.npcResponse2 || null;
 }
 
 function bedtime() {
