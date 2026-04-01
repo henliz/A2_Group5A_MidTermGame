@@ -2,36 +2,30 @@
 
 const runawayManDialogue = {
   name: "Mysterious Man",
+  exitMonologue: "He's too on edge… I don't want to make things worse.",
   opening: "Everyone's on edge… what do you want?",
   repeatLine: "…I already said what I had to say.",
   hesitationLine: "I can't deal with his attitude right now, not like this…",
   options: [
     {
       id: "A",
-      cost: 3,
+      cost: 2,
       playerLine:
-        "I didn't do anything. I want to understand what happened. Where were you?",
+        "I'm not accusing you of anything. I just… I need to understand what happened. I'm the one everyone's looking at",
       npcResponse:
-        "I was in my room the whole time! I already talked with the innkeeper, and I do not want to repeat myself to every stranger who comes up to me.",
-      monologue: "Did I say something wrong? Why did he get worked up?…",
-      notebookEntry: "RM claims he was in his room — got defensive quickly.",
+        "Fair enough. I was in my room. Heard the scream around two in the morning, maybe after. Came out and the innkeeper was already there. I'd seen her earlier that evening. Helen. She seemed fine. Normal.",
+      monologue:
+        "He saw her that evening. He said it almost like a footnote, like he wanted it to sound small. I don't know if it is… Should I bring it up to him later on…",
+      notebookEntry:
+        "Was in his room, heard scream and saw Helen earlier that evening, described her as normal",
     },
     {
       id: "B",
-      cost: 2,
-      playerLine: "Rough night?",
-      npcResponse:
-        "You don't say. I wanted to check out and leave, but now I'm stuck here.",
-      monologue: "Maybe he is just as anxious as I am…",
-      notebookEntry:
-        "RM was planning to leave — seemed eager to get out before the lockdown.",
-    },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "Sorry… I was just passing by",
-      npcResponse: "…Don't drag me into anything.",
-      monologue: "Maybe I should talk with other guests here.",
+      cost: 1,
+      playerLine: "This must be a rough situation for everyone.",
+      npcResponse: "You don't say. Don't drag me into whatever you're doing.",
+      monologue:
+        "Whatever I'm doing. Like he already knows I'm trying to figure something out. I didn't give him anything and he still saw through it. Or maybe he says that to everyone.",
       notebookEntry: null,
     },
   ],

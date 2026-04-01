@@ -2,45 +2,35 @@
 
 const innkeeperDialogue = {
   name: "Innkeeper",
+  exitMonologue:
+    "He seems too stressed to talk further… maybe I should try someone else.",
   opening:
-    "Tsk, this is terrible. My inn's reputation will be ruined… What do you want, girl?",
-  repeatLine:
-    "I'm busy. Don't bother me unless you have something useful to say.",
+    "Tsk, this is terrible. My inn's reputation will be ruined… What do you want girl?",
+  repeatLine: "What is the issue? I am busy right now.",
   hesitationLine: "I don't have the energy to deal with them right now…",
   options: [
     {
       id: "A",
-      cost: 3,
-      playerLine:
-        "I just wanted to know what happened last night. Can you tell me what you saw?",
+      cost: 2,
+      playerLine: "I just wanted to know what happened, when you found her",
       npcResponse:
         "What I saw? I heard a scream and found Front Desk Lady…dead. Don't ask me more question troublemaker, I have guests to manage!",
       monologue:
-        "Should I have phrased that differently? He probably thinks I'm nosy…",
+        "She cut herself off. She was going to say something and decided not to. I don't know if pushing further would help or just make her angrier at me.",
       notebookEntry:
-        "Innkeeper heard the scream but claims to know nothing more.",
+        "Heard the scream before finding her. Knows more than she's saying. Doesn't want guests involved.",
     },
     {
       id: "B",
-      cost: 2,
-      playerLine: "…Are you okay?",
-      npcResponse: "Of course not. Someone is dead in my Inn.",
+      cost: 1,
+      playerLine: "'Are you okay?'",
+      npcResponse: "'Of course not… Someone is dead'",
       monologue:
-        "At least he didn't yell at me this time. Maybe it wasn't too awkward.",
-      notebookEntry:
-        "Innkeeper seems more distressed about the Inn's reputation than the death itself.",
-    },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "Sorry…nevermind",
-      npcResponse: "If you're not helping, don't get in the way.",
-      monologue: "Maybe I should talk to the other guests.",
+        "That was the wrong question. Or maybe there wasn't a right one. I should have asked something real while I had the chance.",
       notebookEntry: null,
     },
   ],
 };
-
 const innkeeper = new NPC(300, 400, innkeeperDialogue);
 innkeeper.journalPageIndex = 1;
 innkeeper.portraitKey = "innkeeper";
