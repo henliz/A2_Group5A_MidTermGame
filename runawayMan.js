@@ -2,6 +2,7 @@
 
 const runawayManDialogue = {
   name: "Mysterious Man",
+  exitMonologue: "He's too on edge… I don't want to make things worse.",
   opening: "Everyone's on edge… what do you want?",
   repeatLine: "…I already said what I had to say.",
   hesitationLine: "I can't deal with his attitude right now, not like this…",
@@ -25,14 +26,6 @@ const runawayManDialogue = {
       monologue: "Maybe he is just as anxious as I am…",
       notebookEntry:
         "RM was planning to leave — seemed eager to get out before the lockdown.",
-    },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "Sorry… I was just passing by",
-      npcResponse: "…Don't drag me into anything.",
-      monologue: "Maybe I should talk with other guests here.",
-      notebookEntry: null,
     },
   ],
 };

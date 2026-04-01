@@ -6,7 +6,8 @@ let floorImg;
 let wallImgs = [];
 let wallCorner;
 let wallDoor; // optional (not used yet)
-let insideSideWall;
+let externalSideWall;
+let internalSideWall;
 
 const TF1_S = 32;
 const TF1_SCALE = 3.2; // 80% of original — scales tile rendering & world size
@@ -26,35 +27,37 @@ const BACK_WALL_SHIFT_X = 6; // was 8
 const WALL_WIDTH_TRIM = 3; // was 4
 
 // Side walls
-const SIDE_EDGE_PAD = 2;
-const SIDE_WALL_X_NUDGE = 6; // was 8
-const SIDE_WALL_START_DROP = Math.floor(TF1_T * 0.55);
+const SIDE_EDGE_PAD = 0; // Flush alignment with tile edges
+const SIDE_WALL_X_NUDGE = 0; // No additional nudge needed
+const SIDE_WALL_START_DROP = Math.floor(TF1_T * 0.3); // Start higher for better visual integration
 
 // Corners are perfect — keep this
 const CORNER_Y_NUDGE = Math.floor(TF1_T * 0.35);
 
 // ── MULTI-ROOM CONNECTED FLOORPLAN ─────────────────────────────────────────
 const TF1_FLOOR_MASK = [
-  "001111000111100",
-  "001111000111100",
-  "000011111110000",
-  "000011111110000",
-  "011111111111110",
-  "011101111101110",
-  "000001111100000", //
-  "000001111100000", //
-  "001111111111100", //
-  "001111111111100", //
-  "000001111100000",
-  "000001111100000",
-  "001111111111100", //
-  "001111111111100", //
-  "001111111111100", //
+  "00111100111100",
+  "00111100111100",
+  "00000111100000",
+  "00000111100000",
+  "01111111111110",
+  "01110111101110",
+  "00000111100000", //
+  "00000111100000", //
+  "00111111111100", //
+  "00111111111100", //
+  "00000111100000",
+  "00000111100000",
+  "00111111111100", //
+  "00111111111100", //
+  "00111111111100", //
 ];
 
 let TF1_W = 0;
 let TF1_H = 0;
 let TF1_SOLID = []; // 1 = solid, 0 = walkable
+let BUILDING_MIN_COL = 0;
+let BUILDING_MAX_COL = 0;
 
 function tf1Preload() {
   floorImg = loadImage("assets/walls/floor_full.png"); //reference [19]
@@ -69,12 +72,25 @@ function tf1Preload() {
   wallCorner = loadImage("assets/walls/wall_corner.png");
   wallDoor = loadImage("assets/walls/wall_door.png"); // optional
 
-  insideSideWall = loadImage("assets/walls/external_side_wall.png");
+  externalSideWall = loadImage("assets/walls/external_side_wall.png");
+  internalSideWall = loadImage("assets/walls/inside_side_wall.png");
 }
 
 function tf1Setup() {
   TF1_H = TF1_FLOOR_MASK.length;
   TF1_W = TF1_FLOOR_MASK[0].length;
+
+  // Calculate building boundaries
+  BUILDING_MIN_COL = TF1_W;
+  BUILDING_MAX_COL = -1;
+  for (let r = 0; r < TF1_H; r++) {
+    for (let c = 0; c < TF1_W; c++) {
+      if (isFloor(c, r)) {
+        BUILDING_MIN_COL = Math.min(BUILDING_MIN_COL, c);
+        BUILDING_MAX_COL = Math.max(BUILDING_MAX_COL, c);
+      }
+    }
+  }
 
   TF1_SOLID = Array.from({ length: TF1_H }, () => new Array(TF1_W).fill(1));
   for (let r = 0; r < TF1_H; r++) {
@@ -203,6 +219,18 @@ function hasTopOuterCorner(col, row, side) {
   return false;
 }
 
+// Determine if a side wall position is external (building perimeter) or internal (between rooms)
+function isExternalWall(col, side) {
+  if (side === "left") {
+    // External if this column is the leftmost floor column
+    return col === BUILDING_MIN_COL;
+  } else if (side === "right") {
+    // External if this column is the rightmost floor column
+    return col === BUILDING_MAX_COL;
+  }
+  return false;
+}
+
 function tf1Draw(worldX = 0, worldY = 0) {
   // 1) FLOOR
   for (let r = 0; r < TF1_H; r++) {
@@ -224,10 +252,13 @@ function tf1Draw(worldX = 0, worldY = 0) {
 
       if ((!edgeHere || r === TF1_H) && segStart !== null) {
         const segRows = r - segStart;
+        const wallImg = isExternalWall(c, "left")
+          ? externalSideWall
+          : internalSideWall;
         const x = worldX + c * TF1_T - SIDE_EDGE_PAD + SIDE_WALL_X_NUDGE;
         const yTop = worldY + segStart * TF1_T + SIDE_WALL_START_DROP;
         const h = segRows * TF1_T - SIDE_WALL_START_DROP;
-        if (h > 0) drawSideWallStrip(insideSideWall, x, yTop, h, true);
+        if (h > 0) drawSideWallStrip(wallImg, x, yTop, h, true);
         segStart = null;
       }
     }
@@ -240,12 +271,15 @@ function tf1Draw(worldX = 0, worldY = 0) {
 
       if ((!edgeHere || r === TF1_H) && segStart !== null) {
         const segRows = r - segStart;
-        const sw = insideSideWall.width * TF1_SCALE;
+        const wallImg = isExternalWall(c, "right")
+          ? externalSideWall
+          : internalSideWall;
+        const sw = wallImg.width * TF1_SCALE;
         const x =
           worldX + (c + 1) * TF1_T - sw + SIDE_EDGE_PAD + SIDE_WALL_X_NUDGE;
         const yTop = worldY + segStart * TF1_T + SIDE_WALL_START_DROP;
         const h = segRows * TF1_T - SIDE_WALL_START_DROP;
-        if (h > 0) drawSideWallStrip(insideSideWall, x, yTop, h, false);
+        if (h > 0) drawSideWallStrip(wallImg, x, yTop, h, false);
         segStart = null;
       }
     }

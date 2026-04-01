@@ -2,6 +2,8 @@
 
 const innkeeperDialogue = {
   name: "Innkeeper",
+  exitMonologue:
+    "He seems too stressed to talk further… maybe I should try someone else.",
   opening:
     "Tsk, this is terrible. My inn's reputation will be ruined… What do you want, girl?",
   repeatLine:
@@ -30,17 +32,8 @@ const innkeeperDialogue = {
       notebookEntry:
         "Innkeeper seems more distressed about the Inn's reputation than the death itself.",
     },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "Sorry…nevermind",
-      npcResponse: "If you're not helping, don't get in the way.",
-      monologue: "Maybe I should talk to the other guests.",
-      notebookEntry: null,
-    },
   ],
 };
-
 const innkeeper = new NPC(300, 400, innkeeperDialogue);
 innkeeper.journalPageIndex = 1;
 innkeeper.portraitKey = "innkeeper";

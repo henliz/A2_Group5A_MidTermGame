@@ -2,6 +2,7 @@
 
 const doctorDialogue = {
   name: "Doctor Krisia",
+  exitMonologue: "She looks like she needs space… I shouldn't push it.",
   opening: "Oh hi. Sorry, I'm still trying to process what happened.",
   repeatLine: "I don't really have anything else to say right now.",
   hesitationLine: "I'm too drained to approach her right now…",
@@ -24,15 +25,6 @@ const doctorDialogue = {
         "Barely. I tried to, but you can't really shake the feeling after the scream.",
       monologue: "She didn't seem bothered… I think its fine?",
       notebookEntry: "Doctor claims she was in her room but couldn't sleep.",
-    },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "...Hi",
-      npcResponse: "Hi.",
-      monologue:
-        "That was so awkward… Maybe I should try talking with someone else…",
-      notebookEntry: null,
     },
   ],
 };

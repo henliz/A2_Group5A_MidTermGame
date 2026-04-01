@@ -96,6 +96,18 @@ function drawDialogue() {
   }
 }
 
+function handleExit() {
+  let exitText =
+    activeNPC.dialogue.exitMonologue || "Maybe I should talk to someone else…";
+  chosenOption = {
+    monologue: exitText,
+    cost: -1,
+    npcResponse: null,
+  };
+  dialoguePhase = "monologue";
+  startTypewriter(exitText);
+}
+
 //helper functions for drawDialogue
 function drawDialogueBox(boxX, boxY, boxW, boxH) {
   if (dialoguePhase === "monologue" || dialoguePhase === "hesitation") {
@@ -233,9 +245,12 @@ function drawEnterHint(boxX, boxY, boxW, boxH) {
   const hintY = boxY + boxH - 25;
 
   // brighten on hover
-  const hinting = dialogueBoxBounds &&
-    mouseX > dialogueBoxBounds.x && mouseX < dialogueBoxBounds.x + dialogueBoxBounds.w &&
-    mouseY > dialogueBoxBounds.y && mouseY < dialogueBoxBounds.y + dialogueBoxBounds.h;
+  const hinting =
+    dialogueBoxBounds &&
+    mouseX > dialogueBoxBounds.x &&
+    mouseX < dialogueBoxBounds.x + dialogueBoxBounds.w &&
+    mouseY > dialogueBoxBounds.y &&
+    mouseY < dialogueBoxBounds.y + dialogueBoxBounds.h;
 
   fill(255, 255, 255, hinting ? 255 : 200);
   textSize(18);
@@ -257,16 +272,16 @@ function drawOptions() {
   let startY = height * 0.4;
   let gap = btnH + 10;
 
-  let visibleIndices = getVisibleOptionIndices(); // single source of truth
+  let visibleIndices = getVisibleOptionIndices();
 
   for (let drawnIndex = 0; drawnIndex < visibleIndices.length; drawnIndex++) {
-    let i = visibleIndices[drawnIndex]; // real option index
+    let i = visibleIndices[drawnIndex];
     let option = activeNPC.dialogue.options[i];
     let btnY = startY + drawnIndex * gap;
     let canAfford = spoonsRemaining >= option.cost;
 
-    // draw button image based on state
-    if (!canAfford && option.id !== "C") {
+    // draw button image
+    if (!canAfford) {
       image(uiBtnDisabled, btnX, btnY, btnW, btnH);
     } else if (i === selectedOption) {
       image(uiBtnHover, btnX, btnY, btnW, btnH);
@@ -274,38 +289,54 @@ function drawOptions() {
       image(uiBtnRegular, btnX, btnY, btnW, btnH + 18);
     }
 
-    // text colour — white on dark red hover, dark on light buttons
-    if (i === selectedOption && (canAfford || option.id === "C")) {
-      fill(255); // white text on dark red hover button
-    } else if (!canAfford && option.id !== "C") {
-      fill(100, 100, 100); // grey text on disabled button
+    // text colour
+    if (i === selectedOption && canAfford) {
+      fill(255);
+    } else if (!canAfford) {
+      fill(100, 100, 100);
     } else {
-      fill(30, 30, 30); // dark text on regular button
+      fill(30, 30, 30);
     }
 
     textSize(18);
     textAlign(LEFT, CENTER);
     text(option.playerLine, btnX + 13, btnY - 7, btnW - 60, btnH);
 
-    // cookie cost badge
+    // cookie cost badge on right
     let iconSize = 25;
     let iconX = btnX + btnW - iconSize - 8;
     let iconY = btnY + btnH / 2 - iconSize / 2;
     image(spoonImg, iconX, iconY, iconSize, iconSize);
 
-    // cost number next to the cookie
-    fill(255);
+    fill(i === selectedOption && canAfford ? 255 : 30);
     textAlign(RIGHT, CENTER);
     textSize(18);
     text(option.cost, btnX + btnW - iconSize - 12, btnY + btnH / 2);
   }
+
+  // exit button — always drawn below the last visible option
+  let exitIndex = visibleIndices.length; // position after last option
+  let exitY = startY + exitIndex * gap;
+  let isExitSelected = selectedOption === -1; // -1 = exit button selected
+
+  if (isExitSelected) {
+    image(uiBtnHover, btnX, exitY, btnW, btnH);
+    fill(255);
+  } else {
+    image(uiBtnRegular, btnX, exitY, btnW, btnH + 18);
+    fill(30, 30, 30);
+  }
+
+  textSize(18);
+  textAlign(CENTER, CENTER);
+  text("Nevermind [Exit]", btnX + btnW / 2, exitY + btnH / 2);
 }
 
 function confirmChoice() {
   let option = activeNPC.dialogue.options[selectedOption];
 
-  // can't afford and not the exit option → show tooTired monologue
-  if (spoonsRemaining < option.cost && option.id !== "C") {
+  // can't afford → show tooTired monologue
+  if (spoonsRemaining < option.cost) {
     chosenOption = {
       monologue: tooTiredLine,
       cost: -1, // special value so it doesn't trigger exit
@@ -318,6 +349,12 @@ function confirmChoice() {
 
   spoonsRemaining -= option.cost;
   chosenOption = option;
+  // low cookie notification
+  if (spoonsRemaining <= 2 && !lowCookieNotifTriggered) {
+    lowCookieNotifVisible = true;
+    lowCookieNotifTriggered = true;
+    lowCookieNotifTimer = LOW_COOKIE_NOTIF_DURATION;
+  }
 
   // reset highlight to first visible option for next time buttons appear
   let visible = getVisibleOptionIndices();
@@ -328,9 +365,7 @@ function confirmChoice() {
   selectedOption = visible.length > 0 ? visible[0] : 0;
 
   // mark this option as used (skip C — it's always the exit)
-  if (option.id !== "C") {
-    activeNPC.usedOptions.push(option.id);
-  }
+  activeNPC.usedOptions.push(option.id);
 
   // add notebook entry if this option has one
   if (option.notebookEntry && activeNPC.journalPageIndex !== undefined) {
@@ -360,6 +395,9 @@ function bedtime() {
 
     textSize(20);
     text("DAY 1 OVER", width / 2, height / 2 + 40);
+    //so cookie low notification can be reset for the next day
+    lowCookieNotifTriggered = false;
+    lowCookieNotifVisible = false;
   }
 }
 
@@ -370,8 +408,7 @@ function getVisibleOptionIndices() {
 
   for (let i = 0; i < options.length; i++) {
     let option = options[i];
-    // skip used options (except C which is always visible)
-    if (option.id !== "C" && activeNPC.usedOptions.includes(option.id)) {
+    if (activeNPC.usedOptions.includes(option.id)) {
       continue;
     }
     visible.push(i);
@@ -386,3 +423,4 @@ window.dialoguePhase = dialoguePhase;
 window.bedtime = bedtime;
 window.startTypewriter = startTypewriter;
 window.skipTypewriter = skipTypewriter;
+window.handleExit = handleExit;
