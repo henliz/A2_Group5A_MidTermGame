@@ -70,9 +70,8 @@ function drawHomePage() {
     imageMode(CORNER);
     image(instructions, imgX, imgY, imgW, imgH);
 
-    // "Press ENTER to start" sits below the image
     textAlign(CENTER, CENTER);
-    textSize(16);
+    textSize(20);
     fill(220);
     text("Press ENTER to start", width / 2, imgY + imgH + 20);
   }

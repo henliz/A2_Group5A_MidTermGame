@@ -282,6 +282,12 @@ function setup() {
   runawayMan.sprite = runawayManImg;
   runawayMan.spriteFrameW = 48;
   runawayMan.spriteFrameH = 64; // measured from pixel data: rows are 64px tall, not 56
+
+  judgePortraits = [
+    portraits.innkeeper.idle,
+    portraits.doctor.idle,
+    portraits.runawayMan.idle,
+  ];
 }
 
 function draw() {
@@ -339,6 +345,7 @@ function draw() {
   drawJournalIcon();
   drawDayCounter();
   journal.display();
+  drawJudgement();
   bedtime();
   updateHoverCursor();
 }
@@ -548,8 +555,8 @@ function drawPrompt() {
 function drawJournalIcon() {
   const iw = 60;
   const ih = 60;
-  const ix = width - iw - 16;
-  const iy = 50;
+  const ix = width - iw - 90;
+  const iy = 12;
 
   const hoveringJournal =
     mouseX > ix && mouseX < ix + iw && mouseY > iy && mouseY < iy + ih;
@@ -776,6 +783,9 @@ function keyPressed() {
       closeDialogue();
     }
   }
+  if (judgeKeyPressed(key)) {
+    return;
+  }
 }
 
 function mousePressed() {
@@ -801,10 +811,10 @@ function mousePressed() {
   }
 
   if (
-    mouseX > width - 76 &&
-    mouseX < width - 16 &&
-    mouseY > 50 &&
-    mouseY < 110
+    mouseX > width - 150 &&
+    mouseX < width - 90 &&
+    mouseY > 12 &&
+    mouseY < 72
   ) {
     journal.toggle();
     return;
