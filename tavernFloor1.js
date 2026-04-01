@@ -6,58 +6,61 @@ let floorImg;
 let wallImgs = [];
 let wallCorner;
 let wallDoor; // optional (not used yet)
-let insideSideWall;
+let externalSideWall;
+let internalSideWall;
 
 const TF1_S = 32;
-const TF1_SCALE = 4;
-const TF1_T = TF1_S * TF1_SCALE; // 128px per tile
+const TF1_SCALE = 3.2; // 80% of original — scales tile rendering & world size
+const TF1_T = TF1_S * TF1_SCALE; // 102.4px per tile
 
 // Back wall overlap into floor edge (how much the wall "sits" on the floor line)
 const BACK_WALL_OVERLAP = Math.floor(TF1_T * 0.2);
 
-// ✅ More overlap between segments to hide seams
-const WALL_OVERLAP_PX = 8; // try 6..10
+// More overlap between segments to hide seams
+const WALL_OVERLAP_PX = 6; // was 8
 
-// ✅ Raise the back walls so they align with corners (your screenshot needs this)
-const BACK_WALL_RAISE_PX = 64; // try 16..28
+// Raise the back walls so they align with corners
+const BACK_WALL_RAISE_PX = 51; // was 64
 
-const BACK_WALL_SHIFT_X = 8; // slide back walls left (try -1..-4)
+const BACK_WALL_SHIFT_X = 6; // was 8
 
-const WALL_WIDTH_TRIM = 4; // pixels to shave off each wall segment (try 2–6)
+const WALL_WIDTH_TRIM = 3; // was 4
 
 // Side walls
-const SIDE_EDGE_PAD = 2;
-const SIDE_WALL_X_NUDGE = 8; // try -6..+6 (neg = more left, pos = more right)
-const SIDE_WALL_START_DROP = Math.floor(TF1_T * 0.55);
+const SIDE_EDGE_PAD = 0; // Flush alignment with tile edges
+const SIDE_WALL_X_NUDGE = 0; // No additional nudge needed
+const SIDE_WALL_START_DROP = Math.floor(TF1_T * 0.3); // Start higher for better visual integration
 
 // Corners are perfect — keep this
 const CORNER_Y_NUDGE = Math.floor(TF1_T * 0.35);
 
 // ── MULTI-ROOM CONNECTED FLOORPLAN ─────────────────────────────────────────
 const TF1_FLOOR_MASK = [
-  "001111000111100",
-  "001111000111100",
-  "000011111110000",
-  "000011111110000",
-  "011111111111110",
-  "011101111101110",
-  "000001111100000", //
-  "000001111100000", //
-  "001111111111100", //
-  "001111111111100", //
-  "000001111100000",
-  "000001111100000",
-  "001111111111100", //
-  "001111111111100", //
-  "001111111111100", //
+  "00111100111100",
+  "00111100111100",
+  "00000111100000",
+  "00000111100000",
+  "01111111111110",
+  "01110111101110",
+  "00000111100000", //
+  "00000111100000", //
+  "00111111111100", //
+  "00111111111100", //
+  "00000111100000",
+  "00000111100000",
+  "00111111111100", //
+  "00111111111100", //
+  "00111111111100", //
 ];
 
 let TF1_W = 0;
 let TF1_H = 0;
 let TF1_SOLID = []; // 1 = solid, 0 = walkable
+let BUILDING_MIN_COL = 0;
+let BUILDING_MAX_COL = 0;
 
 function tf1Preload() {
-  floorImg = loadImage("assets/walls/floor_full.png");
+  floorImg = loadImage("assets/walls/floor_full.png"); //reference [19]
 
   wallImgs = [
     loadImage("assets/walls/wall1.png"),
@@ -69,12 +72,25 @@ function tf1Preload() {
   wallCorner = loadImage("assets/walls/wall_corner.png");
   wallDoor = loadImage("assets/walls/wall_door.png"); // optional
 
-  insideSideWall = loadImage("assets/walls/external_side_wall.png");
+  externalSideWall = loadImage("assets/walls/external_side_wall.png");
+  internalSideWall = loadImage("assets/walls/inside_side_wall.png");
 }
 
 function tf1Setup() {
   TF1_H = TF1_FLOOR_MASK.length;
   TF1_W = TF1_FLOOR_MASK[0].length;
+
+  // Calculate building boundaries
+  BUILDING_MIN_COL = TF1_W;
+  BUILDING_MAX_COL = -1;
+  for (let r = 0; r < TF1_H; r++) {
+    for (let c = 0; c < TF1_W; c++) {
+      if (isFloor(c, r)) {
+        BUILDING_MIN_COL = Math.min(BUILDING_MIN_COL, c);
+        BUILDING_MAX_COL = Math.max(BUILDING_MAX_COL, c);
+      }
+    }
+  }
 
   TF1_SOLID = Array.from({ length: TF1_H }, () => new Array(TF1_W).fill(1));
   for (let r = 0; r < TF1_H; r++) {
@@ -86,6 +102,7 @@ function tf1Setup() {
   // expose real numbers AFTER setup
   window.TF1_W = TF1_W;
   window.TF1_H = TF1_H;
+  window.TF1_T = TF1_T;
 }
 
 function isFloor(col, row) {
@@ -110,10 +127,8 @@ function wallVariantForPixel(xPx, row) {
   return wallVariantFor(col, row);
 }
 
-/**
- * ✅ Single baseline for BOTH corners and walls.
- * Corners look correct → align walls to this, but raise walls slightly.
- */
+//Single baseline for BOTH corners and walls.
+
 function wallBaselineY(yFloorTop, img) {
   const dh = img.height * TF1_SCALE;
   return (
@@ -121,12 +136,7 @@ function wallBaselineY(yFloorTop, img) {
   );
 }
 
-/**
- * ✅ Draw a back-wall segment as EXACTLY 1 tile wide (TF1_T),
- * by cropping a 32px slice out of the middle of wall1/2/3/4.
- *
- * No stretching, no “too wide” segments.
- */
+//Draw a back-wall segment as EXACTLY 1 tile wide
 function drawBackWallTile(img, xLeft, yFloorTop, destW = TF1_T) {
   const dh = img.height * TF1_SCALE;
   const y = wallBaselineY(yFloorTop, img);
@@ -209,6 +219,18 @@ function hasTopOuterCorner(col, row, side) {
   return false;
 }
 
+// Determine if a side wall position is external (building perimeter) or internal (between rooms)
+function isExternalWall(col, side) {
+  if (side === "left") {
+    // External if this column is the leftmost floor column
+    return col === BUILDING_MIN_COL;
+  } else if (side === "right") {
+    // External if this column is the rightmost floor column
+    return col === BUILDING_MAX_COL;
+  }
+  return false;
+}
+
 function tf1Draw(worldX = 0, worldY = 0) {
   // 1) FLOOR
   for (let r = 0; r < TF1_H; r++) {
@@ -230,10 +252,13 @@ function tf1Draw(worldX = 0, worldY = 0) {
 
       if ((!edgeHere || r === TF1_H) && segStart !== null) {
         const segRows = r - segStart;
+        const wallImg = isExternalWall(c, "left")
+          ? externalSideWall
+          : internalSideWall;
         const x = worldX + c * TF1_T - SIDE_EDGE_PAD + SIDE_WALL_X_NUDGE;
         const yTop = worldY + segStart * TF1_T + SIDE_WALL_START_DROP;
         const h = segRows * TF1_T - SIDE_WALL_START_DROP;
-        if (h > 0) drawSideWallStrip(insideSideWall, x, yTop, h, true);
+        if (h > 0) drawSideWallStrip(wallImg, x, yTop, h, true);
         segStart = null;
       }
     }
@@ -246,12 +271,15 @@ function tf1Draw(worldX = 0, worldY = 0) {
 
       if ((!edgeHere || r === TF1_H) && segStart !== null) {
         const segRows = r - segStart;
-        const sw = insideSideWall.width * TF1_SCALE;
+        const wallImg = isExternalWall(c, "right")
+          ? externalSideWall
+          : internalSideWall;
+        const sw = wallImg.width * TF1_SCALE;
         const x =
           worldX + (c + 1) * TF1_T - sw + SIDE_EDGE_PAD + SIDE_WALL_X_NUDGE;
         const yTop = worldY + segStart * TF1_T + SIDE_WALL_START_DROP;
         const h = segRows * TF1_T - SIDE_WALL_START_DROP;
-        if (h > 0) drawSideWallStrip(insideSideWall, x, yTop, h, false);
+        if (h > 0) drawSideWallStrip(wallImg, x, yTop, h, false);
         segStart = null;
       }
     }
@@ -278,9 +306,6 @@ function tf1Draw(worldX = 0, worldY = 0) {
       const runX0 = worldX + c0 * TF1_T;
       const runX1 = worldX + (c1 + 1) * TF1_T;
 
-      // 关键优化：
-      // 只有这一端真的会画 corner，才给 back wall 预留 cornerW。
-      // 内凹 / L 形横边通常不会两侧都画 corner，不能固定两头都扣掉。
       const reserveLeft = hasTopOuterCorner(c0, r, "left") ? cornerW : 0;
       const reserveRight = hasTopOuterCorner(c1, r, "right") ? cornerW : 0;
 

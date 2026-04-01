@@ -2,7 +2,16 @@
 // Simple props layer for tavern. Draws in WORLD SPACE.
 // Uses multi-asset loading framework to manage many furniture/prop images.
 
-// clutterAssetList: Array defining all assets to load
+// ASSET STORAGE & ASSET LIST
+
+//clutterImages: Object to store all loaded PNG images
+
+const clutterImages = {};
+
+const CLUTTER = []; // will hold placed props
+
+//clutterAssetList: defining all assets to load
+//all assets from reference [13]
 
 const clutterAssetList = [
   //Lobby clutter
@@ -124,7 +133,6 @@ const clutterAssetList = [
   },
 ];
 
-//Each Assets Positions
 const roomLayout = [
   // Tavern clutter setting
   {
@@ -392,13 +400,13 @@ function checkCollision(playerNextX, playerNextY, playerR) {
   return false; // No collision
 }
 
-// ============================================================
 // PRELOAD: Load all assets from the list
-// ============================================================
 
 function clutterPreload() {
   // Loop through asset list and load each image
   for (const asset of clutterAssetList) {
+    //all assets from reference [13]
+
     clutterImages[asset.key] = loadImage(
       asset.path,
       () => console.log(`[clutter] loaded: ${asset.key}`),
@@ -407,9 +415,7 @@ function clutterPreload() {
   }
 }
 
-// ============================================================
 // SETUP: Place props in the scene
-// ============================================================
 
 function clutterSetup() {
   // Clear previous clutter
@@ -432,9 +438,7 @@ function clutterSetup() {
   }
 }
 
-// ============================================================
 // DRAW: Render all props in the CLUTTER array
-// ============================================================
 
 function clutterDraw(worldX = 0, worldY = 0) {
   // Loop through all placed props and draw each one
@@ -457,9 +461,7 @@ function clutterDraw(worldX = 0, worldY = 0) {
   }
 }
 
-// ============================================================
 // EXPOSE TO P5 GLOBAL MODE
-// ============================================================
 
 // expose to p5 global mode
 window.clutterPreload = clutterPreload;

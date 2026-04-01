@@ -4,6 +4,7 @@ let player;
 let spoonImg;
 let innkeeperImg;
 let nunImg;
+let runawayManImg;
 
 let camX = 0;
 let camY = 0;
@@ -14,6 +15,8 @@ const FRAME_W = 32;
 const FRAME_H = 32;
 const ANIM_SPEED = 7;
 const CHAR_SCALE = 2.0;
+const NPC_CHAR_SCALE = 1.7; // NPCs drawn slightly smaller than the player
+const CAM_ZOOM = 1.4; // world-space zoom (1.0 = no zoom)
 
 const DIR = { down: 0, left: 1, right: 2, up: 3 };
 
@@ -30,24 +33,51 @@ let evidencePg;
 
 let portraits = {}; // for dialogue portraits
 
+//dialogue ui
+let uiMainBox, uiMonologueBox;
+let uiBtnRegular, uiBtnHover, uiBtnDisabled;
+
+//cookies are low reminder
+let lowCookieNotifImg;
+let lowCookieNotifVisible = false;
+let lowCookieNotifTriggered = false;
+let lowCookieNotifTimer = 0;
+const LOW_COOKIE_NOTIF_DURATION = 300; // ~5 seconds at 60fps
+
 let currentScene = "HOME";
+let npcPromptBounds = null; // set each frame by drawPrompt()
+
+let currentDay = 1;
+const TOTAL_DAYS = 3;
 let journalicon;
+
+let jersey10Font;
+let journalFont;
+
+let primaryTextC;
+let monologueTextC;
+let dialogueHoverButtonTextC;
+let dialogueDisabledButtonTextC;
+let journalTextC;
+
+let prologueVideo;
 
 function preload() {
   tf1Preload();
   clutterPreload();
-  charSheet = loadImage("redridinghood.png");
+  charSheet = loadImage("redridinghood.png"); //reference [15]
   loadHomeAssets();
-  spoonImg = loadImage("assets/spoon-placeholder.png");
-  innkeeperImg = loadImage("assets/innkeeper_sprite.png");
-  nunImg = loadImage("nuns.png");
+  spoonImg = loadImage("assets/cookies.png"); //reference [7]
+  innkeeperImg = loadImage("assets/innkeeper_sprite.png"); //reference [4]
+  nunImg = loadImage("nuns.png"); //reference [15]
+  runawayManImg = loadImage("assets/Jerome_spirtesheet.png"); //reference [2]
 
   // journal pages
-  doctorPg = loadImage("journalPages/Doctor profile.png");
-  rmPg = loadImage("journalPages/RM Profile.png");
-  innkeeperPg = loadImage("journalPages/Innkeeper profile.png");
-  fdlPg = loadImage("journalPages/FDL Profile.png");
-  evidencePg = loadImage("journalPages/Evidence page.png");
+  doctorPg = loadImage("assets/journal/Krisia_journal.png");
+  rmPg = loadImage("assets/journal/Jerome_journal.png");
+  innkeeperPg = loadImage("assets/journal/Mrs.Gustall_journal.png");
+  fdlPg = loadImage("assets/journal/Helen_journal.png");
+  evidencePg = loadImage("assets/journal/Evidence_journal.png");
 
   // character portraits
   portraits = {
@@ -64,11 +94,47 @@ function preload() {
       happy: loadImage("assets/portraits/LR_Happy.png"),
       determined: loadImage("assets/portraits/LR_Determined.png"),
     },
-    // doctor and runawayMan portraits go here when ready:
-    // doctor: { idle: loadImage("assets/portraits/DR_Idle.png"), ... },
-    // runawayMan: { idle: loadImage("assets/portraits/RM_Idle.png"), ... },
+    doctor: {
+      idle: loadImage("assets/portraits/Doctor_idle.png"),
+      nervous: loadImage("assets/portraits/Doctor_nervous.png"),
+      happy: loadImage("assets/portraits/Doctor_happy.png"),
+      sus: loadImage("assets/portraits/Doctor_sus.png"),
+      angry: loadImage("assets/portraits/Doctor_angry.png"),
+    },
+    runawayMan: {
+      idle: loadImage("assets/portraits/RM_idle.png"),
+      nervous: loadImage("assets/portraits/RM_nervous.png"),
+      happy: loadImage("assets/portraits/RM_happy.png"),
+      sus: loadImage("assets/portraits/RM_sus.png"),
+      angry: loadImage("assets/portraits/RM_angry.png"),
+    },
   };
-  journalicon = loadImage("assets/bookicon.png");
+  journalicon = loadImage("assets/bookicon.png"); // reference 16
+  // ui dialogue elements
+  uiMainBox = loadImage("assets/ui elements/Main Dialogue Box.png");
+  uiMonologueBox = loadImage("assets/ui elements/Inner Monologue Box.png");
+  uiBtnRegular = loadImage("assets/ui elements/Dialogue choice regular.png");
+  uiBtnHover = loadImage("assets/ui elements/Dialogue choice hover.png");
+  uiBtnDisabled = loadImage("assets/ui elements/Dialogue choice disabled.png");
+
+  jersey10Font = loadFont("assets/Jersey10-Regular.ttf");
+  journalFont = loadFont("assets/ReenieBeanie-Regular.ttf");
+
+  lowCookieNotifImg = loadImage(
+    "assets/ui elements/Cookie Low Reminder Box.png",
+  );
+
+  prologueVideo = createVideo("assets/Prologue.mp4"); //reference [4], [5]
+  prologueVideo.hide();
+  // auto-skip to game if the video can't load or play (codec/browser issue)
+  prologueVideo.elt.onerror = () => {
+    currentScene = "GAME";
+  };
+  prologueVideo.elt.onstalled = () => {
+    setTimeout(() => {
+      if (currentScene === "PROLOGUE") currentScene = "GAME";
+    }, 3000);
+  };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -160,10 +226,19 @@ function getInnZones() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noSmooth();
+  textFont(jersey10Font);
+
+  //text colours
+  primaryTextC = color(168, 86, 21);
+  monologueTextC = color(255);
+  dialogueHoverButtonTextC = color(255);
+  dialogueDisabledButtonTextC = color(168, 86, 21);
+  journalTextC = color(255);
 
   tf1Setup();
   // once the floor/tile system exists we can place our furniture
   clutterSetup();
+  lightingSetup();
 
   player = new Player();
   player.dir = DIR.down;
@@ -172,15 +247,15 @@ function setup() {
   const zones = getInnZones();
   const used = [];
 
-  // Player spawn (main area)
-  let p = findSpawnPoint({
-    r: P_RADIUS,
-    region: zones.main,
-    avoid: used,
-    minDist: 160,
-  });
-  player.px = p.x;
-  player.py = p.y;
+  // Player spawns just inside the door
+  const doorPos = getPropPosition(door1Layout);
+  if (doorPos) {
+    player.px = doorPos.actualX + doorPos.dw / 2;
+    player.py = doorPos.actualY + doorPos.dh + 60;
+  } else {
+    player.px = 7.3 * TF1_T;
+    player.py = 3 * TF1_T;
+  }
   used.push({ x: player.px, y: player.py });
 
   // NPC spawns (spread out)
@@ -215,6 +290,9 @@ function setup() {
   doctor.spriteFrameW = 48;
   doctor.spriteFrameH = 48;
   runawayMan.colour = color(100, 220, 130); // green
+  runawayMan.sprite = runawayManImg;
+  runawayMan.spriteFrameW = 48;
+  runawayMan.spriteFrameH = 64; // measured from pixel data: rows are 64px tall, not 56
 }
 
 function draw() {
@@ -231,14 +309,28 @@ function draw() {
     }, 2000);
     return;
   }
+  // Prologue video
+  if (currentScene === "PROLOGUE") {
+    background(0);
+    imageMode(CENTER);
+    image(prologueVideo, width / 2, height / 2, width - 200, height);
+    imageMode(CORNER);
+    // skip hint
+    fill(255, 255, 255, 140);
+    textAlign(RIGHT, BOTTOM);
+    textSize(14);
+    text("Press any key or click to skip", width - 20, height - 16);
+    return;
+  }
 
   if (!journal.isOpen) {
     updatePlayer();
-    camX = lerp(camX, player.px - width / 2, 0.14);
-    camY = lerp(camY, player.py - height / 2, 0.14);
+    camX = lerp(camX, player.px - width / (2 * CAM_ZOOM), 0.14);
+    camY = lerp(camY, player.py - height / (2 * CAM_ZOOM), 0.14);
   }
 
   push();
+  scale(CAM_ZOOM);
   translate(-camX, -camY);
 
   tf1Draw(0, 0);
@@ -250,12 +342,18 @@ function draw() {
   }
   pop();
 
+  drawLighting(); // screen-space overlay — after world, before all UI
+
   drawDialogue();
   drawSpoonCounter();
   drawPrompt();
   drawJournalIcon();
+  drawDayCounter();
   journal.display();
+  drawLowCookieNotif();
   bedtime();
+  bedtime();
+  updateHoverCursor();
 }
 
 function updatePlayer() {
@@ -338,40 +436,72 @@ function drawPlayer() {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  lightingResized();
 }
 
 function drawSpoonCounter() {
-  let spoonSize = 36; // size of each spoon icon
-  let gap = 8; // gap between spoons
-  let startX = width * 0.7; // left padding from screen edge
-  let startY = 20; // top padding from screen edge
+  const spoonSize = 70;
+  const gap = 0.5;
+  const startX = 20;
+  const startY = 10;
 
-  for (let i = 0; i < 7; i++) {
-    let x = startX + i * (spoonSize + gap);
-
-    if (i < spoonsRemaining) {
-      // full colour spoon — still have this spoon
-      tint(255, 255, 255);
-    } else {
-      // faded/greyed out — spoon has been spent
-      tint(255, 255, 255, 80);
-    }
-
-    image(spoonImg, x, startY, spoonSize, spoonSize);
+  // How many spoons will the hovered option cost?
+  let previewCost = 0;
+  if (
+    (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") &&
+    selectedOption !== -1 &&
+    activeNPC
+  ) {
+    const opt = activeNPC.dialogue.options[selectedOption];
+    if (opt) previewCost = opt.cost;
   }
 
-  // always reset tint after so nothing else is affected
+  for (let i = 0; i < 7; i++) {
+    const x = startX + i * (spoonSize + gap);
+    // spoons in the range [spoonsRemaining - previewCost, spoonsRemaining) will be spent
+    const willBeSpent =
+      previewCost > 0 &&
+      i >= spoonsRemaining - previewCost &&
+      i < spoonsRemaining;
+
+    if (willBeSpent) {
+      // all cost spoons bob together, slowly
+      const bobY = sin(frameCount * 0.05) * 5;
+      // pass 1: tight red outline
+      drawingContext.shadowColor = "rgba(220, 35, 35, 1)";
+      drawingContext.shadowBlur = 3;
+      image(spoonImg, x, startY + bobY, spoonSize, spoonSize);
+      // pass 2: wider red glow outlining the outline
+      drawingContext.shadowBlur = 16;
+      image(spoonImg, x, startY + bobY, spoonSize, spoonSize);
+      // pass 3: clean cookie on top
+      drawingContext.shadowColor = "transparent";
+      drawingContext.shadowBlur = 0;
+      image(spoonImg, x, startY + bobY, spoonSize, spoonSize);
+    } else if (i < spoonsRemaining) {
+      tint(255);
+      image(spoonImg, x, startY, spoonSize, spoonSize);
+    } else {
+      tint(255, 255, 255, 80);
+      image(spoonImg, x, startY, spoonSize, spoonSize);
+    }
+  }
+
   noTint();
 }
 
 function drawPrompt() {
-  if (dialoguePhase !== "closed") return; // hide during dialogue
+  if (dialoguePhase !== "closed") {
+    npcPromptBounds = null;
+    return; // hide during dialogue
+  }
 
+  npcPromptBounds = null;
   for (let npc of npcs) {
     if (npc.isPlayerNearby(player)) {
-      // convert NPC world position to screen position
-      let screenX = npc.x - camX;
-      let screenY = npc.y - camY;
+      // convert NPC world position to screen position (account for zoom)
+      let screenX = (npc.x - camX) * CAM_ZOOM;
+      let screenY = (npc.y - camY) * CAM_ZOOM;
 
       // draw a small dark pill-shaped box above the NPC
       let msg = "Press Enter to talk";
@@ -379,11 +509,19 @@ function drawPrompt() {
       let msgW = textWidth(msg) + 20;
       let msgH = 24;
       let msgX = screenX - msgW / 2;
-      let msgY = screenY - 50;
+      let msgY = screenY - 90;
 
-      fill(0, 0, 0, 180); // semi-transparent dark background
+      npcPromptBounds = { x: msgX, y: msgY, w: msgW, h: msgH, npc };
+
+      const hoveringPrompt =
+        mouseX > msgX &&
+        mouseX < msgX + msgW &&
+        mouseY > msgY &&
+        mouseY < msgY + msgH;
+
+      fill(hoveringPrompt ? 40 : 0, 0, 0, 180);
       noStroke();
-      rect(msgX, msgY, msgW, msgH, 12); // 12 = rounded corners
+      rect(msgX, msgY, msgW, msgH, 12);
 
       fill(255);
       textAlign(CENTER, CENTER);
@@ -399,8 +537,8 @@ function drawPrompt() {
     // convert door world position to screen position
     let doorPos = getPropPosition(door1Layout);
     if (doorPos) {
-      let screenX = doorPos.actualX - camX;
-      let screenY = doorPos.actualY - camY;
+      let screenX = (doorPos.actualX - camX) * CAM_ZOOM;
+      let screenY = (doorPos.actualY - camY) * CAM_ZOOM;
       // draw a small dark pill-shaped box above the door
       let msg = "Press 'G' to go to bed";
       textSize(16);
@@ -421,26 +559,238 @@ function drawPrompt() {
 
 //journal icon
 function drawJournalIcon() {
-  const ix = width - 60,
-    iy = 20,
-    iw = 40,
-    ih = 40;
+  const iw = 60;
+  const ih = 60;
+  const ix = width - iw - 16;
+  const iy = 50;
 
-  image(journalicon, ix, iy, iw, ih);
+  const hoveringJournal =
+    mouseX > ix && mouseX < ix + iw && mouseY > iy && mouseY < iy + ih;
+  const bobY =
+    journal.hasUnread || hoveringJournal ? sin(frameCount * 0.06) * 3 : 0;
 
+  // journal image: always a slight black outline, then gold glow when unread
+  drawingContext.shadowColor = "rgba(0, 0, 0, 0.85)";
+  drawingContext.shadowBlur = 4;
+  image(journalicon, ix, iy + bobY, iw, ih);
+  if (journal.hasUnread) {
+    drawingContext.shadowColor = "rgba(255, 195, 40, 0.9)";
+    drawingContext.shadowBlur = 20;
+    image(journalicon, ix, iy + bobY, iw, ih);
+  }
+  drawingContext.shadowColor = "transparent";
+  drawingContext.shadowBlur = 0;
+  image(journalicon, ix, iy + bobY, iw, ih);
+
+  // 'J' — gold with gold tight outline then gold glow
+  textAlign(CENTER, CENTER);
+  textSize(38);
+  drawingContext.shadowColor = "rgba(255, 195, 40, 1)";
+  drawingContext.shadowBlur = 3;
+  fill(255, 210, 50);
+  text("J", ix + iw / 2, iy + ih / 2 + bobY);
+  drawingContext.shadowBlur = 12;
+  text("J", ix + iw / 2, iy + ih / 2 + bobY);
+  drawingContext.shadowColor = "transparent";
+  drawingContext.shadowBlur = 0;
+  text("J", ix + iw / 2, iy + ih / 2 + bobY);
+
+  // unread dot
   if (journal.hasUnread) {
     noStroke();
     fill(210, 50, 50);
-    ellipse(ix + 5, iy + 5, 14, 14);
+    ellipse(ix + 8, iy + 8 + bobY, 14, 14);
   }
 }
 
+function drawDayCounter() {
+  textAlign(RIGHT, TOP);
+  textSize(24);
+  drawingContext.shadowColor = "rgba(0, 0, 0, 0.95)";
+  drawingContext.shadowBlur = 4;
+  fill(255, 210, 50);
+  text(`Day ${currentDay}/${TOTAL_DAYS}`, width - 14, 12);
+  drawingContext.shadowColor = "transparent";
+  drawingContext.shadowBlur = 0;
+}
+
+function isMouseOverNPC(npc) {
+  const wx = mouseX / CAM_ZOOM + camX;
+  const wy = mouseY / CAM_ZOOM + camY;
+  const hw = ((npc.spriteFrameW || 48) * NPC_CHAR_SCALE) / 2;
+  const hh = ((npc.spriteFrameH || 48) * NPC_CHAR_SCALE) / 2;
+  return (
+    wx > npc.x - hw &&
+    wx < npc.x + hw &&
+    wy > npc.y - 8 - hh &&
+    wy < npc.y - 8 + hh
+  );
+}
+
+function drawLowCookieNotif() {
+  if (!lowCookieNotifVisible) return;
+
+  // count down timer
+  lowCookieNotifTimer--;
+  if (lowCookieNotifTimer <= 0) {
+    lowCookieNotifVisible = false;
+    return;
+  }
+
+  let nW = 420;
+  let nH = 82;
+  let nX = width - nW - 20;
+  let nY = 120; // below journal icon
+
+  // fade out in last 60 frames
+  let alpha =
+    lowCookieNotifTimer < 60 ? map(lowCookieNotifTimer, 0, 60, 0, 255) : 255;
+
+  tint(255, alpha);
+  image(lowCookieNotifImg, nX, nY, nW, nH);
+  noTint();
+
+  // message text
+  fill(255, 255, 255, alpha);
+  textSize(16);
+  textAlign(LEFT, CENTER);
+  text("Be careful, your energy is running low", nX + 16, nY + nH / 2 - 8);
+
+  // progress bar along the bottom
+  let barW = nW - 32;
+  let barH = 5;
+  let barX = nX + 16;
+  let barY = nY + nH - 12;
+  let progress = lowCookieNotifTimer / LOW_COOKIE_NOTIF_DURATION;
+
+  fill(255, 255, 255, alpha * 0.3);
+  noStroke();
+  rect(barX, barY, barW, barH, 3);
+
+  fill(255, 200, 50, alpha);
+  rect(barX, barY, barW * progress, barH, 3);
+
+  // X button
+  let xSize = 20;
+  let xX = nX + nW - xSize - 8;
+  let xY = nY + 8;
+
+  const hoveringX =
+    mouseX > xX && mouseX < xX + xSize && mouseY > xY && mouseY < xY + xSize;
+
+  fill(255, 255, 255, hoveringX ? alpha : alpha * 0.6);
+  textSize(16);
+  textAlign(CENTER, CENTER);
+  text("✕", xX + xSize / 2, xY + xSize / 2);
+}
+
+function updateHoverCursor() {
+  let hovering = false;
+
+  // Home screen "Press ENTER to start"
+  if (currentScene === "HOME") {
+    const ty = height * 0.5 - 20;
+    if (mouseY > ty - 16 && mouseY < ty + 16) hovering = true;
+  }
+
+  // NPC talk prompt pill
+  if (npcPromptBounds) {
+    const b = npcPromptBounds;
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    )
+      hovering = true;
+  }
+
+  // Dialogue box (advance / typewriter-skip click target)
+  if (
+    dialogueBoxBounds &&
+    dialoguePhase !== "choosing" &&
+    dialoguePhase !== "repeat-choosing"
+  ) {
+    const b = dialogueBoxBounds;
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    )
+      hovering = true;
+  }
+
+  // Dialogue choice buttons — reset each frame, set on hover
+  if (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") {
+    selectedOption = -1;
+    const btnW = 1080 / 3;
+    const btnH = 241 / 3;
+    const btnX = width * 0.6;
+    const startY = height * 0.4;
+    const gap = btnH + 10;
+    const visibleIndices = getVisibleOptionIndices();
+    for (let i = 0; i < visibleIndices.length; i++) {
+      const btnY = startY + i * gap;
+      if (
+        mouseX > btnX &&
+        mouseX < btnX + btnW &&
+        mouseY > btnY &&
+        mouseY < btnY + btnH
+      ) {
+        hovering = true;
+        selectedOption = visibleIndices[i];
+        break;
+      }
+    }
+
+    // exit button hover
+    const exitY = startY + visibleIndices.length * gap;
+    if (
+      mouseX > btnX &&
+      mouseX < btnX + btnW &&
+      mouseY > exitY &&
+      mouseY < exitY + btnH
+    ) {
+      hovering = true;
+      selectedOption = -1;
+    }
+  }
+
+  // NPC sprites (world-space hit test)
+  if (dialoguePhase === "closed" && currentScene === "GAME") {
+    for (const npc of npcs) {
+      if (isMouseOverNPC(npc)) {
+        hovering = true;
+        break;
+      }
+    }
+  }
+
+  const clickCursor = "url('assets/cursor-click.png') 4 4, auto";
+  const defaultCursor = "url('assets/cursor-default.png') 4 4, auto";
+  document.body.style.cursor =
+    hovering || mouseIsPressed ? clickCursor : defaultCursor;
+}
+
 function keyPressed() {
-  // START SCREEN
   if (currentScene === "HOME") {
     if (keyCode === ENTER) {
-      currentScene = "GAME";
+      currentScene = "PROLOGUE";
+      prologueVideo.play();
+      // when video ends, automatically go to GAME
+      prologueVideo.elt.onended = () => {
+        currentScene = "GAME";
+        prologueVideo.hide();
+      };
     }
+    return;
+  }
+
+  if (currentScene === "PROLOGUE") {
+    prologueVideo.stop();
+    currentScene = "GAME";
+    prologueVideo.hide();
     return;
   }
 
@@ -465,6 +815,14 @@ function keyPressed() {
   }
 
   if (keyCode === ENTER) {
+    // If text is still animating, skip to full text instead of advancing
+    const choosingPhase =
+      dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing";
+    if (!typewriterDone && dialoguePhase !== "closed" && !choosingPhase) {
+      skipTypewriter();
+      return;
+    }
+
     if (dialoguePhase === "closed") {
       for (let npc of npcs) {
         if (npc.isPlayerNearby(player)) {
@@ -474,18 +832,20 @@ function keyPressed() {
       }
     } else if (dialoguePhase === "opening") {
       dialoguePhase = "choosing";
-    } else if (dialoguePhase === "choosing") {
-      confirmChoice();
+    } else if (
+      (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") &&
+      selectedOption === -1
+    ) {
+      handleExit();
     } else if (dialoguePhase === "repeat") {
       if (spoonsRemaining === 0) {
         closeDialogue();
       } else {
         dialoguePhase = "repeat-choosing";
       }
-    } else if (dialoguePhase === "repeat-choosing") {
-      confirmChoice();
     } else if (dialoguePhase === "response") {
       dialoguePhase = "monologue";
+      startTypewriter(chosenOption.monologue);
     } else if (dialoguePhase === "monologue") {
       if (!chosenOption) {
         closeDialogue();
@@ -497,38 +857,61 @@ function keyPressed() {
         closeDialogue();
       } else {
         dialoguePhase = "repeat";
+        startTypewriter(activeNPC.dialogue.repeatLine);
       }
     } else if (dialoguePhase === "hesitation") {
       closeDialogue();
     }
   }
-
-  // navigate buttons with W / S
-  if (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") {
-    let visibleIndices = getVisibleOptionIndices();
-    if (visibleIndices.length === 0) return;
-
-    let currentPos = visibleIndices.indexOf(selectedOption);
-    if (currentPos === -1) currentPos = 0;
-
-    if (key === "w" || key === "W") {
-      let newPos =
-        (currentPos - 1 + visibleIndices.length) % visibleIndices.length;
-      selectedOption = visibleIndices[newPos];
-    }
-    if (key === "s" || key === "S") {
-      let newPos = (currentPos + 1) % visibleIndices.length;
-      selectedOption = visibleIndices[newPos];
-    }
-  }
 }
 
 function mousePressed() {
+  // dismiss cookie notif
+  if (lowCookieNotifVisible) {
+    let nW = 420;
+    let nH = 82;
+    let nX = width - nW - 20;
+    let nY = 120;
+    let xSize = 20;
+    let xX = nX + nW - xSize - 8;
+    let xY = nY + 8;
+    if (
+      mouseX > xX &&
+      mouseX < xX + xSize &&
+      mouseY > xY &&
+      mouseY < xY + xSize
+    ) {
+      lowCookieNotifVisible = false;
+      return;
+    }
+  }
+
+  if (currentScene === "PROLOGUE") {
+    prologueVideo.stop();
+    currentScene = "GAME";
+    prologueVideo.hide();
+    return;
+  }
+
+  // Home screen — click "Press ENTER to start" row
+  if (currentScene === "HOME") {
+    const ty = height * 0.5 - 20;
+    if (mouseY > ty - 16 && mouseY < ty + 16) {
+      currentScene = "PROLOGUE";
+      prologueVideo.play();
+      prologueVideo.elt.onended = () => {
+        currentScene = "GAME";
+        prologueVideo.hide();
+      };
+      return;
+    }
+  }
+
   if (
-    mouseX > width - 60 &&
-    mouseX < width - 20 &&
-    mouseY > 20 &&
-    mouseY < 60
+    mouseX > width - 76 &&
+    mouseX < width - 16 &&
+    mouseY > 50 &&
+    mouseY < 110
   ) {
     journal.toggle();
     return;
@@ -539,21 +922,98 @@ function mousePressed() {
     return;
   }
 
-  // handle dialogue option clicks
-  if (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") {
-    let btnW = width * 0.28;
-    let btnH = height * 0.07;
-    let btnX = width * 0.6;
-    let startY = height * 0.4;
-    let gap = btnH + 10;
+  // NPC talk prompt click
+  if (npcPromptBounds) {
+    const b = npcPromptBounds;
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    ) {
+      openDialogue(b.npc);
+      return;
+    }
+  }
 
-    for (let i = 0; i < 3; i++) {
-      let btnY = startY + i * gap;
-      if (isMouseOver(btnX, btnY, btnW, btnH)) {
-        selectedOption = i;
-        confirmChoice(); // works for both affordable and unaffordable
+  // NPC sprite click (only when player is nearby)
+  if (dialoguePhase === "closed" && currentScene === "GAME") {
+    for (const npc of npcs) {
+      if (isMouseOverNPC(npc) && npc.isPlayerNearby(player)) {
+        openDialogue(npc);
         return;
       }
+    }
+  }
+
+  // Dialogue box click — same logic as pressing Enter (skips typewriter first)
+  if (
+    dialogueBoxBounds &&
+    dialoguePhase !== "choosing" &&
+    dialoguePhase !== "repeat-choosing"
+  ) {
+    const b = dialogueBoxBounds;
+    if (
+      mouseX > b.x &&
+      mouseX < b.x + b.w &&
+      mouseY > b.y &&
+      mouseY < b.y + b.h
+    ) {
+      if (!typewriterDone) {
+        skipTypewriter();
+        return;
+      }
+      // advance phase (mirror Enter key logic for non-choosing phases)
+      if (dialoguePhase === "opening") {
+        dialoguePhase = "choosing";
+      } else if (dialoguePhase === "repeat") {
+        if (spoonsRemaining === 0) closeDialogue();
+        else dialoguePhase = "repeat-choosing";
+      } else if (dialoguePhase === "response") {
+        dialoguePhase = "monologue";
+        startTypewriter(chosenOption.monologue);
+      } else if (dialoguePhase === "monologue") {
+        if (
+          !chosenOption ||
+          spoonsRemaining === 0 ||
+          chosenOption.cost === 0 ||
+          chosenOption.cost === -1
+        ) {
+          closeDialogue();
+        } else {
+          dialoguePhase = "repeat";
+          startTypewriter(activeNPC.dialogue.repeatLine);
+        }
+      } else if (dialoguePhase === "hesitation") {
+        closeDialogue();
+      }
+      return;
+    }
+  }
+
+  // Dialogue choice button clicks
+  if (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") {
+    const btnW = 1080 / 3;
+    const btnH = 241 / 3;
+    const btnX = width * 0.6;
+    const startY = height * 0.4;
+    const gap = btnH + 10;
+    const visibleIndices = getVisibleOptionIndices();
+
+    for (let i = 0; i < visibleIndices.length; i++) {
+      const btnY = startY + i * gap;
+      if (isMouseOver(btnX, btnY, btnW, btnH)) {
+        selectedOption = visibleIndices[i];
+        confirmChoice();
+        return;
+      }
+    }
+
+    // exit button click
+    const exitY = startY + visibleIndices.length * gap;
+    if (isMouseOver(btnX, exitY, btnW, btnH)) {
+      handleExit();
+      return;
     }
   }
 }

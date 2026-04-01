@@ -1,4 +1,8 @@
+//doctor.js
+
 const doctorDialogue = {
+  name: "Doctor Krisia",
+  exitMonologue: "She looks like she needs space… I shouldn't push it.",
   opening: "Oh hi. Sorry, I'm still trying to process what happened.",
   repeatLine: "I don't really have anything else to say right now.",
   hesitationLine: "I'm too drained to approach her right now…",
@@ -22,25 +26,20 @@ const doctorDialogue = {
       monologue: "She didn't seem bothered… I think its fine?",
       notebookEntry: "Doctor claims she was in her room but couldn't sleep.",
     },
-    {
-      id: "C",
-      cost: 0,
-      playerLine: "...Hi",
-      npcResponse: "Hi.",
-      monologue:
-        "That was so awkward… Maybe I should try talking with someone else…",
-      notebookEntry: null,
-    },
   ],
 };
 
 const doctor = new NPC(600, 450, doctorDialogue);
-doctor.journalPageIndex = 1;
-doctor.waypoints = [
-  { x: 600, y: 450 },
-  { x: 800, y: 450 },
-  { x: 800, y: 600 },
-  { x: 600, y: 600 },
-];
+doctor.journalPageIndex = 2;
+doctor.portraitKey = "doctor";
+doctor.currentEmotion = "idle";
+
+// Doctor wanders the lower half of the inn — lobby (rows 12–14) and the
+// connecting tavern area (rows 8–9). She routes through the centre corridor
+// (rows 10–11) automatically via A*.
+// Slow, thoughtful pace — she's still processing everything.
+doctor.wanderBounds = { c0: 2, r0: 8, c1: 12, r1: 14 };
+doctor.patrolSpeed = 0.9; // slow
+doctor.idleDuration = 200; // long pauses — standing and thinking
 
 window.doctor = doctor;
