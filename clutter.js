@@ -352,6 +352,7 @@ const roomLayout = [
     tileY: 13.2,
     scale: 0.2,
     anchor: "top-left",
+    glow: true,
   },
   //object necklace
   {
@@ -360,6 +361,7 @@ const roomLayout = [
     tileY: 3.9,
     scale: 0.2,
     anchor: "top-left",
+    glow: true,
   },
   //object certificate
   {
@@ -368,6 +370,7 @@ const roomLayout = [
     tileY: 12,
     scale: 0.2,
     anchor: "top-left",
+    glow: true,
   },
   //object newsclipping
   {
@@ -376,6 +379,7 @@ const roomLayout = [
     tileY: 13.6,
     scale: 0.2,
     anchor: "top-left",
+    glow: true,
   },
   //object crumplenote
   {
@@ -384,6 +388,7 @@ const roomLayout = [
     tileY: 8,
     scale: 0.2,
     anchor: "top-left",
+    glow: true,
   },
   //object medicinalbook
   {
@@ -392,6 +397,7 @@ const roomLayout = [
     tileY: 4,
     scale: 0.15,
     anchor: "top-left",
+    glow: true,
   },
 ];
 
@@ -506,6 +512,7 @@ function clutterSetup() {
       tileY: item.tileY,
       scale: window.TF1_SCALE ?? item.scale ?? 4,
       anchor: item.anchor || "bottom",
+      glow: item.glow || false,
     });
   }
 }
@@ -519,6 +526,25 @@ function clutterDraw(worldX = 0, worldY = 0) {
 
     const pos = getPropPosition(p, worldX, worldY);
     if (!pos) continue;
+
+    // Draw glow effect if enabled
+    if (p.glow) {
+      push();
+      // Calculate center of the object
+      const centerX = pos.actualX + pos.dw / 2;
+      const centerY = pos.actualY + pos.dh / 2;
+      const maxRadius = Math.max(pos.dw, pos.dh) * 0.8; // Slightly larger than the object
+
+      // Draw multiple circles with decreasing opacity for glow effect
+      for (let i = 0; i < 5; i++) {
+        const radius = maxRadius * (1 - i * 0.1);
+        const alpha = 50 - i * 10; // Decreasing alpha
+        fill(255, 255, 200, alpha); // Soft yellow-white glow
+        noStroke();
+        ellipse(centerX, centerY, radius * 2, radius * 2);
+      }
+      pop();
+    }
 
     image(p.img, pos.actualX, pos.actualY, pos.dw, pos.dh);
   }
