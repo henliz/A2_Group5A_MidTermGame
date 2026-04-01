@@ -4,6 +4,8 @@ let selectedOption = 0; // which button is highlighted (0, 1, 2)
 let spoonsRemaining = 7; // spoon budget for the day
 let chosenOption = null; // stores the option the player picked
 let pendingNpcResponse2 = null;
+let dialoguePages = []; // current text split into fitted pages
+let dialoguePageIndex = 0; // which page we're on
 const tooTiredLine = "Gosh… I couldn't bring myself to ask them that."; // dialogue for when you don't have enough spoons to choose a dialogue option
 
 // Exposed dialogue box bounds so sketch.js can hit-test clicks/hover

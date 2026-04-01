@@ -101,8 +101,33 @@ function drawHomePage() {
 
 function drawEndPage() {
   background(0);
-  fill(255);
+  // fade out the whole screen by drawing a black overlay on top
+  if (endScreenAlpha < 255) {
+    noStroke();
+    fill(0, endScreenAlpha);
+    rect(0, 0, width, height);
+  }
+  fill(255, endScreenAlpha === 0 ? 0 : 255);
   textAlign(CENTER, CENTER);
   textSize(24);
-  text("Day 2\n 1 day until the sheriff arrives", width / 2, height / 2 - 20);
+
+  if (currentDay < TOTAL_DAYS) {
+    text(
+      "Day " +
+        currentDay +
+        " is over.\n" +
+        (TOTAL_DAYS - currentDay) +
+        " day(s) until the sheriff arrives.",
+      width / 2,
+      height / 2 - 20,
+    );
+  } else {
+    text(
+      "Day " +
+        currentDay +
+        " is over.\nThe sheriff arrives tomorrow. Time to make your verdict.",
+      width / 2,
+      height / 2 - 20,
+    );
+  }
 }
