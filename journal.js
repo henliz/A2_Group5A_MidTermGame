@@ -75,6 +75,7 @@ class Journal {
       textSize(18);
       textAlign(LEFT, TOP);
       textStyle(ITALIC);
+
       for (let i = 0; i < page.textEntries.length; i++) {
         text("• " + page.textEntries[i], entryX, entryY + i * 75, entryW, 200);
       }
