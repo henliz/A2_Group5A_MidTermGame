@@ -357,8 +357,8 @@ const roomLayout = [
   //object necklace
   {
     asset: "necklace",
-    tileX: 11.2,
-    tileY: 3.9,
+    tileX: 2.3,
+    tileY: 12,
     scale: 0.2,
     anchor: "top-left",
     glow: true,
@@ -366,8 +366,8 @@ const roomLayout = [
   //object certificate
   {
     asset: "certificate",
-    tileX: 3.1,
-    tileY: 12,
+    tileX: 9.3, //11
+    tileY: 3.8, //4
     scale: 0.2,
     anchor: "top-left",
     glow: true,
@@ -375,8 +375,8 @@ const roomLayout = [
   //object newsclipping
   {
     asset: "newsclipping",
-    tileX: 10.8,
-    tileY: 13.6,
+    tileX: 11.1,
+    tileY: 14.3,
     scale: 0.2,
     anchor: "top-left",
     glow: true,
@@ -384,8 +384,8 @@ const roomLayout = [
   //object crumplenote
   {
     asset: "crumplenote",
-    tileX: 8.8,
-    tileY: 8,
+    tileX: 5,
+    tileY: 4.2,
     scale: 0.2,
     anchor: "top-left",
     glow: true,
@@ -393,8 +393,8 @@ const roomLayout = [
   //object medicinalbook
   {
     asset: "medicinalbook",
-    tileX: 2.7,
-    tileY: 4,
+    tileX: 11,
+    tileY: 12,
     scale: 0.15,
     anchor: "top-left",
     glow: true,
