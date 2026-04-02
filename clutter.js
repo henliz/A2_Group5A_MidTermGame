@@ -155,6 +155,10 @@ const clutterAssetList = [
     key: "medicinalbook",
     path: "assets/objects/Medicinal_Book.png",
   },
+  {
+    key: "crimescene",
+    path: "assets/crime_scene.png",
+  },
 ];
 
 const roomLayout = [
@@ -398,6 +402,15 @@ const roomLayout = [
     scale: 0.15,
     anchor: "top-left",
     glow: true,
+  },
+
+  //crime scene
+  {
+    asset: "crimescene",
+    tileX: 6.5,
+    tileY: 13.4,
+    scale: 0.26,
+    anchor: "top-left",
   },
 ];
 
