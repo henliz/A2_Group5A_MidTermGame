@@ -72,7 +72,7 @@ class Journal {
       let entryW = 650 / 2 - 90;
 
       fill(40, 20, 10);
-      textSize(18);
+      textSize(14);
       textAlign(LEFT, TOP);
       textStyle(ITALIC);
 

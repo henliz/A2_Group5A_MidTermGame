@@ -91,7 +91,7 @@ function drawEndPage() {
   if (currentDay < TOTAL_DAYS) {
     text(
       "Day " +
-        currentDay +
+        (currentDay - 1) +
         " is over.\n" +
         (TOTAL_DAYS - currentDay) +
         " day(s) until the sheriff arrives.",
@@ -101,7 +101,7 @@ function drawEndPage() {
   } else {
     text(
       "Day " +
-        currentDay +
+        (currentDay - 1) +
         " is over.\nThe sheriff arrives tomorrow. Time to make your verdict.",
       width / 2,
       height / 2 - 20,

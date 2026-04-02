@@ -11,7 +11,8 @@ function judgeKeyPressed(k) {
     judgePhase === "closed" &&
     dialoguePhase === "closed" &&
     !journal.isOpen &&
-    k === "9"
+    currentDay === 3 &&
+    judgement === true
   ) {
     judgePhase = "confirm";
     judgeSelectedPortrait = -1;
