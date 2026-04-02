@@ -2,7 +2,7 @@
 
 const runawayManDialogueByDay = {
   1: {
-    name: "Mysterious Man",
+    name: "Sir Jerome",
     exitMonologue: "He's too on edge… I don't want to make things worse.",
     opening:
       "What now? … I already know what you're going to ask. Everyone's asking the same thing. I was in my room. End of story.",

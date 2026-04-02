@@ -2,7 +2,7 @@
 
 const innkeeperDialogueByDay = {
   1: {
-    name: "Innkeeper",
+    name: "Mrs. Gustall",
     exitMonologue:
       "He seems too stressed to talk further… maybe I should try someone else.",
     opening:
