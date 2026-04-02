@@ -44,7 +44,7 @@ const runawayManDialogueByDay = {
     ],
   },
   2: {
-    name: "Mysterious Man",
+    name: "Jerome",
     exitMonologue: "Maybe I should talk with other guests here.",
     opening: "They can't know I'm here… They can't know I'm here.",
     repeatLine: "Sigh… What other questions are in your head right now?",
@@ -95,7 +95,7 @@ const runawayManDialogueByDay = {
     ],
   },
   3: {
-    name: "Mysterious Man",
+    name: "Jerome",
     exitMonologue: "Maybe I should talk with other guests here…",
     opening: "What now? I already talked to you yesterday.",
     repeatLine: "Do you need something else?",

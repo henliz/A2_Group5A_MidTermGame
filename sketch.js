@@ -1,5 +1,6 @@
 let charSheet;
 let player;
+let activeExamineItem = null;
 
 let spoonImg;
 let innkeeperImg;
@@ -382,6 +383,7 @@ function draw() {
   drawLighting(); // screen-space overlay — after world, before all UI
 
   drawDialogue();
+  drawExamineImage();
   drawSpoonCounter();
   drawPrompt();
   drawJournalIcon();
@@ -599,6 +601,29 @@ function drawPrompt() {
       text(msg, screenX + msgW / 4, msgY + msgH / 2);
     }
   }
+
+  // Check for interactable evidence objects
+  const nearItem = getInteractableNearPlayer(player);
+  if (nearItem) {
+    const pos = getPropPosition(nearItem);
+    if (pos) {
+      const screenX = ((pos.actualX + pos.dw / 2) - camX) * CAM_ZOOM;
+      const screenY = (pos.actualY - camY) * CAM_ZOOM;
+      let msg = "Press 'E' to examine";
+      textSize(13);
+      let msgW = textWidth(msg) + 20;
+      let msgH = 24;
+      let msgX = screenX - msgW / 2;
+      let msgY = screenY - 20;
+      fill(0, 0, 0, 180);
+      noStroke();
+      rect(msgX, msgY, msgW, msgH, 12);
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(13);
+      text(msg, screenX, msgY + msgH / 2);
+    }
+  }
 }
 
 //journal icon
@@ -695,25 +720,55 @@ function handleSettingsClick(mx, my) {
   }
 }
 
+function drawExamineImage() {
+  if (!activeExamineItem || !activeExamineItem.closeupAsset || dialoguePhase !== "monologue") return;
+  const img = clutterImages[activeExamineItem.closeupAsset];
+  if (!img) return;
+
+  // Right half of screen, leaving room for the dialogue box at the bottom
+  const areaX = width * 0.54;
+  const areaY = height * 0.18;
+  const areaW = width * 0.43;
+  const areaH = height * 0.72;
+
+  // Fit image within the area while preserving aspect ratio
+  const aspect = img.width / img.height;
+  let drawW = areaW;
+  let drawH = drawW / aspect;
+  if (drawH > areaH) {
+    drawH = areaH;
+    drawW = drawH * aspect;
+  }
+
+  const drawX = areaX + (areaW - drawW) / 2;
+  const drawY = areaY + (areaH - drawH) / 2;
+
+  image(img, drawX, drawY, drawW, drawH);
+}
+
 function handlePhoneClick(mx, my) {
+  if (currentDay !== 3 || dialoguePhase !== "closed" || journal.isOpen) return;
+
+  const phoneItem = roomLayout.find((f) => f.asset === "phone");
+  if (!phoneItem) return;
+  const pos = getPropPosition(phoneItem);
+  if (!pos) return;
+
+  // Only allow click when player is within interact radius
+  const phoneCenterX = pos.actualX + pos.dw / 2;
+  const phoneCenterY = pos.actualY + pos.dh / 2;
+  if (dist(player.px, player.py, phoneCenterX, phoneCenterY) > (phoneItem.interactRadius || 80)) return;
+
   const wx = mx / CAM_ZOOM + camX;
   const wy = my / CAM_ZOOM + camY;
-
-  const phoneX = 3.2 * TF1_T;
-  const phoneY = 13.2 * TF1_T;
-  const phoneW = 80;
-  const phoneH = 80;
-
   if (
-    wx > phoneX &&
-    wx < phoneX + phoneW &&
-    wy > phoneY &&
-    wy < phoneY + phoneH
+    wx > pos.actualX &&
+    wx < pos.actualX + pos.dw &&
+    wy > pos.actualY &&
+    wy < pos.actualY + pos.dh
   ) {
-    if (currentDay === 3 && dialoguePhase === "closed" && !journal.isOpen) {
-      judgePhase = "confirm";
-      judgeSelectedPortrait = -1;
-    }
+    judgePhase = "confirm";
+    judgeSelectedPortrait = -1;
   }
 }
 
@@ -970,6 +1025,27 @@ function keyPressed() {
           openDialogue(npc);
           return;
         }
+      }
+      // Check interactable evidence objects
+      const nearItem = getInteractableNearPlayer(player);
+      if (nearItem) {
+        if (nearItem.asset === "phone" && currentDay === 3) {
+          judgePhase = "confirm";
+          judgeSelectedPortrait = -1;
+        } else {
+          // Mark examined (phone stays interactive across days)
+          if (nearItem.asset !== "phone") nearItem.examined = true;
+          if (nearItem.journalEntry) {
+            journal.addTextEntry(4, nearItem.journalEntry); // 4 = Evidence page
+          }
+          if (nearItem.closeupAsset) {
+            journal.addImageEntry(4, nearItem.closeupAsset, nearItem.closeupLabel, nearItem.asset);
+          }
+          activeExamineItem = nearItem;
+          chosenOption = { monologue: nearItem.monologue || "…" };
+          startMonologue(nearItem.monologue || "…");
+        }
+        return;
       }
     } else if (dialoguePhase === "opening") {
       dialoguePhase = "choosing";
