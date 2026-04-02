@@ -49,6 +49,8 @@ let npcPromptBounds = null; // set each frame by drawPrompt()
 
 let currentDay = 1;
 const TOTAL_DAYS = 3;
+let endScreenAlpha = 255;
+
 let journalicon;
 
 let jersey10Font;
@@ -118,7 +120,7 @@ function preload() {
   uiBtnDisabled = loadImage("assets/ui elements/Dialogue choice disabled.png");
 
   jersey10Font = loadFont("assets/Jersey10-Regular.ttf");
-  journalFont = loadFont("assets/ReenieBeanie-Regular.ttf");
+  journalFont = loadFont("assets/Margarine-Regular.ttf");
 
   lowCookieNotifImg = loadImage(
     "assets/ui elements/Cookie Low Reminder Box.png",
@@ -126,7 +128,7 @@ function preload() {
 
   prologueVideo = createVideo("assets/Prologue.mp4"); //reference [4], [5]
   prologueVideo.hide();
-  // auto-skip to game if the video can't load or play (codec/browser issue)
+  // auto-skip to game if the video can't load or play (codec/browser ssue)
   prologueVideo.elt.onerror = () => {
     currentScene = "GAME";
   };
@@ -293,6 +295,12 @@ function setup() {
   runawayMan.sprite = runawayManImg;
   runawayMan.spriteFrameW = 48;
   runawayMan.spriteFrameH = 64; // measured from pixel data: rows are 64px tall, not 56
+
+  judgePortraits = [
+    portraits.innkeeper.idle,
+    portraits.doctor.idle,
+    portraits.runawayMan.idle,
+  ];
 }
 
 function draw() {
@@ -304,11 +312,9 @@ function draw() {
     return;
   } else if (currentScene === "END") {
     drawEndPage();
-    setTimeout(() => {
-      currentScene = "GAME";
-    }, 2000);
     return;
   }
+
   // Prologue video
   if (currentScene === "PROLOGUE") {
     background(0);
@@ -350,8 +356,8 @@ function draw() {
   drawJournalIcon();
   drawDayCounter();
   journal.display();
+  drawJudgement();
   drawLowCookieNotif();
-  bedtime();
   bedtime();
   updateHoverCursor();
 }
@@ -561,8 +567,8 @@ function drawPrompt() {
 function drawJournalIcon() {
   const iw = 60;
   const ih = 60;
-  const ix = width - iw - 16;
-  const iy = 50;
+  const ix = width - iw - 90;
+  const iy = 12;
 
   const hoveringJournal =
     mouseX > ix && mouseX < ix + iw && mouseY > iy && mouseY < iy + ih;
@@ -613,175 +619,40 @@ function drawDayCounter() {
   drawingContext.shadowColor = "transparent";
   drawingContext.shadowBlur = 0;
 }
+function advanceDay() {
+  currentDay++;
 
-function isMouseOverNPC(npc) {
-  const wx = mouseX / CAM_ZOOM + camX;
-  const wy = mouseY / CAM_ZOOM + camY;
-  const hw = ((npc.spriteFrameW || 48) * NPC_CHAR_SCALE) / 2;
-  const hh = ((npc.spriteFrameH || 48) * NPC_CHAR_SCALE) / 2;
-  return (
-    wx > npc.x - hw &&
-    wx < npc.x + hw &&
-    wy > npc.y - 8 - hh &&
-    wy < npc.y - 8 + hh
-  );
-}
-
-function drawLowCookieNotif() {
-  if (!lowCookieNotifVisible) return;
-
-  // count down timer
-  lowCookieNotifTimer--;
-  if (lowCookieNotifTimer <= 0) {
-    lowCookieNotifVisible = false;
-    return;
+  // swap each NPC's dialogue to the new day
+  for (let npc of npcs) {
+    if (npc.dialogueByDay && npc.dialogueByDay[currentDay]) {
+      npc.dialogue = npc.dialogueByDay[currentDay];
+    }
+    npc.usedOptions = [];
+    npc.firstVisit = true;
   }
 
-  let nW = 420;
-  let nH = 82;
-  let nX = width - nW - 20;
-  let nY = 120; // below journal icon
+  // reset spoons
+  spoonsRemaining = 7;
+  lowCookieNotifTriggered = false;
+  lowCookieNotifVisible = false;
 
-  // fade out in last 60 frames
-  let alpha =
-    lowCookieNotifTimer < 60 ? map(lowCookieNotifTimer, 0, 60, 0, 255) : 255;
+  // close any open dialogue
+  closeDialogue();
 
-  tint(255, alpha);
-  image(lowCookieNotifImg, nX, nY, nW, nH);
-  noTint();
-
-  // message text
-  fill(255, 255, 255, alpha);
-  textSize(16);
-  textAlign(LEFT, CENTER);
-  text("Be careful, your energy is running low", nX + 16, nY + nH / 2 - 8);
-
-  // progress bar along the bottom
-  let barW = nW - 32;
-  let barH = 5;
-  let barX = nX + 16;
-  let barY = nY + nH - 12;
-  let progress = lowCookieNotifTimer / LOW_COOKIE_NOTIF_DURATION;
-
-  fill(255, 255, 255, alpha * 0.3);
-  noStroke();
-  rect(barX, barY, barW, barH, 3);
-
-  fill(255, 200, 50, alpha);
-  rect(barX, barY, barW * progress, barH, 3);
-
-  // X button
-  let xSize = 20;
-  let xX = nX + nW - xSize - 8;
-  let xY = nY + 8;
-
-  const hoveringX =
-    mouseX > xX && mouseX < xX + xSize && mouseY > xY && mouseY < xY + xSize;
-
-  fill(255, 255, 255, hoveringX ? alpha : alpha * 0.6);
-  textSize(16);
-  textAlign(CENTER, CENTER);
-  text("✕", xX + xSize / 2, xY + xSize / 2);
-}
-
-function updateHoverCursor() {
-  let hovering = false;
-
-  // Home screen "Press ENTER to start"
-  if (currentScene === "HOME") {
-    const ty = height * 0.5 - 20;
-    if (mouseY > ty - 16 && mouseY < ty + 16) hovering = true;
-  }
-
-  // NPC talk prompt pill
-  if (npcPromptBounds) {
-    const b = npcPromptBounds;
-    if (
-      mouseX > b.x &&
-      mouseX < b.x + b.w &&
-      mouseY > b.y &&
-      mouseY < b.y + b.h
-    )
-      hovering = true;
-  }
-
-  // Dialogue box (advance / typewriter-skip click target)
-  if (
-    dialogueBoxBounds &&
-    dialoguePhase !== "choosing" &&
-    dialoguePhase !== "repeat-choosing"
-  ) {
-    const b = dialogueBoxBounds;
-    if (
-      mouseX > b.x &&
-      mouseX < b.x + b.w &&
-      mouseY > b.y &&
-      mouseY < b.y + b.h
-    )
-      hovering = true;
-  }
-
-  // Dialogue choice buttons — reset each frame, set on hover
-  if (dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing") {
-    selectedOption = -1;
-    const btnW = 1080 / 3;
-    const btnH = 241 / 3;
-    const btnX = width * 0.6;
-    const startY = height * 0.4;
-    const gap = btnH + 10;
-    const visibleIndices = getVisibleOptionIndices();
-    for (let i = 0; i < visibleIndices.length; i++) {
-      const btnY = startY + i * gap;
-      if (
-        mouseX > btnX &&
-        mouseX < btnX + btnW &&
-        mouseY > btnY &&
-        mouseY < btnY + btnH
-      ) {
-        hovering = true;
-        selectedOption = visibleIndices[i];
-        break;
+  // show end screen, then return to game
+  endScreenAlpha = 255;
+  currentScene = "END";
+  setTimeout(() => {
+    // start fading out over ~1.5 seconds before switching to GAME
+    const fadeInterval = setInterval(() => {
+      endScreenAlpha -= 5;
+      if (endScreenAlpha <= 0) {
+        endScreenAlpha = 0;
+        clearInterval(fadeInterval);
+        currentScene = "GAME";
       }
-    }
-
-    // exit button hover
-    const exitY = startY + visibleIndices.length * gap;
-    if (
-      mouseX > btnX &&
-      mouseX < btnX + btnW &&
-      mouseY > exitY &&
-      mouseY < exitY + btnH
-    ) {
-      hovering = true;
-      selectedOption = -1;
-    }
-  }
-
-  // NPC sprites (world-space hit test)
-  if (dialoguePhase === "closed" && currentScene === "GAME") {
-    for (const npc of npcs) {
-      if (isMouseOverNPC(npc)) {
-        hovering = true;
-        break;
-      }
-    }
-  }
-
-  const clickCursor = "url('assets/cursor-click.png') 4 4, auto";
-  const defaultCursor = "url('assets/cursor-default.png') 4 4, auto";
-  document.body.style.cursor =
-    hovering || mouseIsPressed ? clickCursor : defaultCursor;
-}
-
-function drawDayCounter() {
-  textAlign(RIGHT, TOP);
-  textSize(24);
-  drawingContext.shadowColor = "rgba(0, 0, 0, 0.95)";
-  drawingContext.shadowBlur = 4;
-  fill(255, 210, 50);
-  text(`Day ${currentDay}/${TOTAL_DAYS}`, width - 14, 12);
-  drawingContext.shadowColor = "transparent";
-  drawingContext.shadowBlur = 0;
+    }, 1000 / 60); // runs at ~60fps
+  }, 2000); // wait 2 seconds at full black before fading
 }
 
 function isMouseOverNPC(npc) {
@@ -965,7 +836,10 @@ function keyPressed() {
   }
 
   if (isPlayerNearDoor1(player) && (key === "g" || key === "G")) {
-    currentScene = "END";
+    if (currentDay < TOTAL_DAYS) {
+      advanceDay();
+    }
+    // day 3: G does nothing until verdict is implemented
     return;
   }
 
@@ -1026,21 +900,13 @@ function keyPressed() {
       dialoguePhase = "monologue";
       startTypewriter(chosenOption.monologue);
     } else if (dialoguePhase === "monologue") {
-      if (!chosenOption) {
-        closeDialogue();
-      } else if (
-        spoonsRemaining === 0 ||
-        chosenOption.cost === 0 ||
-        chosenOption.cost === -1
-      ) {
-        closeDialogue();
-      } else {
-        dialoguePhase = "repeat";
-        startTypewriter(activeNPC.dialogue.repeatLine);
-      }
+      closeDialogue();
     } else if (dialoguePhase === "hesitation") {
       closeDialogue();
     }
+  }
+  if (judgeKeyPressed(key)) {
+    return;
   }
 }
 
@@ -1087,10 +953,10 @@ function mousePressed() {
   }
 
   if (
-    mouseX > width - 76 &&
-    mouseX < width - 16 &&
-    mouseY > 50 &&
-    mouseY < 110
+    mouseX > width - 150 &&
+    mouseX < width - 90 &&
+    mouseY > 12 &&
+    mouseY < 72
   ) {
     journal.toggle();
     return;
@@ -1149,20 +1015,19 @@ function mousePressed() {
         if (spoonsRemaining === 0) closeDialogue();
         else dialoguePhase = "repeat-choosing";
       } else if (dialoguePhase === "response") {
+        if (pendingNpcResponse2) {
+          dialoguePhase = "response2";
+          startTypewriter(pendingNpcResponse2);
+          pendingNpcResponse2 = null;
+        } else {
+          dialoguePhase = "monologue";
+          startTypewriter(chosenOption.monologue);
+        }
+      } else if (dialoguePhase === "response2") {
         dialoguePhase = "monologue";
         startTypewriter(chosenOption.monologue);
       } else if (dialoguePhase === "monologue") {
-        if (
-          !chosenOption ||
-          spoonsRemaining === 0 ||
-          chosenOption.cost === 0 ||
-          chosenOption.cost === -1
-        ) {
-          closeDialogue();
-        } else {
-          dialoguePhase = "repeat";
-          startTypewriter(activeNPC.dialogue.repeatLine);
-        }
+        closeDialogue();
       } else if (dialoguePhase === "hesitation") {
         closeDialogue();
       }
