@@ -56,7 +56,9 @@ const doctorDialogueByDay = {
         playerLine:
           "Yesterday you mentioned Helen kept asking you personal questions. What kind of questions exactly?",
         npcResponse:
-          "About my work. My hours. Whether I kept certain things in my room. She asked me once about wolfsbane. Said she'd read it had medicinal uses. I told her my medical practice was my own business. She smiled and said of course. But she kept prying.",
+          "About my work. My hours. Whether I kept certain things in my room. She asked me once about wolfsbane. Said she'd read it had medicinal uses.",
+        npcResponse2:
+          "I told her my medical practice was my own business. She smiled and said of course. But she kept prying.",
         monologue: "I hope I didn't sound like I'm prying on her…",
         notebookEntry:
           "Helen asked her specifically about wolfsbane and about what she kept in her room. Krisia tried to shut it down. Helen didn't stop.",
@@ -66,7 +68,9 @@ const doctorDialogueByDay = {
         cost: 2,
         playerLine: "Do you think anyone here could have done it?",
         npcResponse:
-          "I think people are capable of a lot when they feel cornered. Some people just want to be left alone. To do their work and move through without being…examined. I felt like Helen was very thorough. She didn't say no. There must be more to her to the words she uses.",
+          "I think people are capable of a lot when they feel cornered. Some people just want to be left alone. To do their work and move through without being…examined.",
+        npcResponse2:
+          "I felt like Helen was very thorough. She didn't say no. There must be more to her to the words she uses.",
         monologue:
           "She didn't say no. There must be more to her to the words she uses.",
         notebookEntry:
@@ -118,7 +122,9 @@ const doctorDialogueByDay = {
         cost: 2,
         playerLine: "Do you remember anything from that night?",
         npcResponse:
-          "I tried to forget. I've been studying to keep my mind off it. Helen didn't deserve to die in that way. Oh she was very sweet and accommodating, but she was really unprofessional. She would go through my medical journals and books. Once I caught her following me when I was going on a walk, it was so creepy! Hmm… Interesting.",
+          "I tried to forget. I've been studying to keep my mind off it. Helen didn't deserve to die in that way. Oh she was very sweet and accommodating, but she was really unprofessional.",
+        npcResponse2:
+          "She would go through my medical journals and books. Once I caught her following me when I was going on a walk, it was so creepy! Hmm… Interesting.",
         monologue:
           "That is odd. Helen is nosy but why would she go as far to stalk Dr. Krisia? Could this be related to the ripped page she wrote?",
         notebookEntry:

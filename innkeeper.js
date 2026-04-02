@@ -2,7 +2,7 @@
 
 const innkeeperDialogueByDay = {
   1: {
-    name: "Innkeeper",
+    name: "Mrs. Gustall",
     exitMonologue:
       "He seems too stressed to talk further… maybe I should try someone else.",
     opening:
@@ -24,8 +24,8 @@ const innkeeperDialogueByDay = {
       {
         id: "B",
         cost: 1,
-        playerLine: "'Are you okay?'",
-        npcResponse: "'Of course not… Someone is dead'",
+        playerLine: "Are you okay?",
+        npcResponse: "Of course not… Someone is dead",
         monologue:
           "That was the wrong question. Or maybe there wasn't a right one. I should have asked something real while I had the chance.",
         notebookEntry: null,
@@ -33,8 +33,8 @@ const innkeeperDialogueByDay = {
       {
         id: "C",
         cost: 0,
-        playerLine: "'Sorry...Nevermind''",
-        npcResponse: "'If you're not helping, don't get in the way.'",
+        playerLine: "Sorry...Nevermind",
+        npcResponse: "If you're not helping, don't get in the way.",
         monologue:
           "I had something to ask and I lost it the second she looked at me. Now I'm standing here and she's already looking through me like I'm not worth the attention. Maybe that's better. Maybe being invisible is safer right now.",
         notebookEntry: null,
@@ -56,7 +56,8 @@ const innkeeperDialogueByDay = {
         playerLine:
           "Yesterday, I saw a framed newspaper clipping of your donation to feed the hungry children organization, how did you get involved in that?",
         npcResponse:
-          "Have you been snooping around my office?! It was bad enough Helen was always rustling around, and now you're rummaging through my business. Anyway. Don't ask me; my sister runs it in Oakdale. But she doesn't need any more volunteers.",
+          "Have you been snooping around my office?! It was bad enough Helen was always rustling around, and now you're rummaging through my business. Anyway. Don't ask me; my sister runs it in Oakdale.",
+        npcResponse2: "But she doesn't need any more volunteers.",
         monologue:
           "This charity seems really weird. First the certificate looked odd, then she doesn't know details about a charity she donated $100,000 to, then she gives me the wrong location. Helen worked here and must have known about this fishy business, but would Ms. Gustall really kill her to keep Helen quiet?",
         notebookEntry:
@@ -108,7 +109,13 @@ const innkeeperDialogueByDay = {
         cost: 3,
         playerLine: "What were you doing the night of the murder?",
         npcResponse:
-          "I checked up on the inn and make sure everything is stocked. That night, Helen was helping me organize some operational forms and documents earlier that evening so I checked up on her progress and dismissed her for the night. I turn in around 11pm every night. I was already asleep when the scream woke me up. I ran out to find Helen bleeding out on the ground. She was already dead when I found her. It was really strange, she had a few scratches on her face and chest. I suspect that's what ultimately caused her death. But I can't explain the scratches. You saw how brutal it was. Helen had her faults but she didn't deserve to go that way. Yeah, she was really sweet in the short time I knew her.",
+          "I checked up on the inn and make sure everything is stocked. That night, Helen was helping me organize some operational forms and documents earlier that evening...",
+        npcResponse2:
+          "so I checked up on her progress and dismissed her for the night. I turn in around 11pm every night. I was already asleep when the scream woke me up. I ran out...",
+        npcResponse3:
+          "to find Helen bleeding out on the ground. She was already dead when I found her. It was really strange, she had a few scratches on her face and chest...",
+        npcResponse4:
+          "I suspect that's what ultimately caused her death. But I can't explain the scratches. You saw how brutal it was. Helen had her faults but she didn't deserve to go that way. Yeah, she was really sweet in the short time I knew her...",
         monologue:
           "Faults? Like how she would snoop around Ms. Gustall's office? Ms. Gustall was the one who found her body, she seems to know Helen well and seems really upset but what if she's faking it?",
         notebookEntry:
@@ -119,7 +126,9 @@ const innkeeperDialogueByDay = {
         cost: 2,
         playerLine: "How long was Helen working here?",
         npcResponse:
-          "She worked here for just under 2 years. She said she needed a job and my son just left, so I hired her. She was my employee. We had a very professional relationship. Ha! Not really; she made a lot of mistakes and was always in everyone's business. But she was really friendly and the guests loved her. It's a shame how it ended.",
+          "She worked here for just under 2 years. She said she needed a job and my son just left, so I hired her. She was my employee. We had a very professional relationship. Ha! Not really...",
+        npcResponse2:
+          "She made a lot of mistakes and was always in everyone's business. But she was really friendly and the guests loved her. It's a shame how it ended.",
         monologue:
           "She seems upset about Helen's passing. But this confirms Helen's inquisitive nature.",
         notebookEntry:

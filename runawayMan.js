@@ -2,7 +2,7 @@
 
 const runawayManDialogueByDay = {
   1: {
-    name: "Mysterious Man",
+    name: "Sir Jerome",
     exitMonologue: "He's too on edge… I don't want to make things worse.",
     opening:
       "What now? … I already know what you're going to ask. Everyone's asking the same thing. I was in my room. End of story.",
@@ -15,7 +15,9 @@ const runawayManDialogueByDay = {
         playerLine:
           "I'm not accusing you of anything. I just… I need to understand what happened. I'm the one everyone's looking at.",
         npcResponse:
-          "Fair enough. I was in my room. Heard the scream around two in the morning, maybe after. Came out and the innkeeper was already there. I'd seen her earlier that evening. Helen. She seemed fine. Normal.",
+          "Fair enough. I was in my room. Heard the scream around two in the morning, maybe after. Came out and the innkeeper was already there.",
+        npcResponse2:
+          "I'd seen her earlier that evening. Helen. She seemed fine. Normal.",
         monologue:
           "He saw her that evening. He said it almost like a footnote, like he wanted it to sound small. I don't know if it is… Should I bring it up to him later on…",
         notebookEntry:
@@ -53,7 +55,9 @@ const runawayManDialogueByDay = {
         cost: 3,
         playerLine: "You were one of the first to accuse me.",
         npcResponse:
-          "What are you implying? Nothing. I was just curious to why? Oh… Sorry its because you were new and I already knew Mrs. Gustall and Krisia. Did you see Helen before she died? Yes, Helen and I had spoken earlier that evening, in the parlour. She wanted to return something of mine. We talked for a while. Just something personal. It doesn't matter anymore. She seemed perfectly fine when I left her.",
+          "What are you implying? Nothing. I was just curious to why? Oh… Sorry its because you were new and I already knew Mrs. Gustall and Krisia. Did you see Helen before she died?",
+        npcResponse2:
+          "Yes, Helen and I had spoken earlier that evening, in the parlour. She wanted to return something of mine. We talked for a while. Just something personal. It doesn't matter anymore. She seemed perfectly fine when I left her.",
         monologue:
           "Returned something of his… In his room. He said it like it was minor. Like it was just a thing that happened. Helen was returning something of his in the parlour late at night and now she's dead and he was already awake when it happened.",
         notebookEntry:
@@ -103,7 +107,13 @@ const runawayManDialogueByDay = {
         playerLine:
           "You mentioned that you met up with Helen to get something from her. What was it?",
         npcResponse:
-          "I don't see how that's any of your business. I'm just trying to understand what happened that night. Helen was a nice lady, she didn't deserve this. Did you know Helen beyond her working at the inn? Yes… When I checked in, I was going through a difficult time. Helen listened and comforted me. I gave her a necklace to thank her for all she's done for me during my stay. But that night I received a call saying that I had to settle a large fine so I asked for the necklace back. She refused and said this confirmed her suspicions about me. Then she stormed off. That was the last time I saw her. I'm not sure, but I went back to my room. I remember her necklace when I checked in. How did it end up hidden between books?",
+          "I don't see how that's any of your business. I'm just trying to understand what happened that night. Helen was a nice lady, she didn't deserve this. Did you know Helen beyond her working...",
+        npcResponse2:
+          "at the inn? Yes… When I checked in, I was going through a difficult time. Helen listened and comforted me. I gave her a necklace to thank her for all she's done for me during my stay. But that night...",
+        npcResponse3:
+          "I received a call saying that I had to settle a large fine so I asked for the necklace back. She refused and said this confirmed her suspicions about me. Then she stormed off.",
+        npcResponse4:
+          "That was the last time I saw her. I'm not sure, but I went back to my room. I remember her necklace when I checked in. How did it end up hidden between books?",
         monologue:
           "According to Jerome's story Helen must have left the note after he went to the bar. Suspicions? Does he mean she knew about his wife? Or what the fine was for?…",
         notebookEntry:
@@ -114,7 +124,9 @@ const runawayManDialogueByDay = {
         cost: 2,
         playerLine: "Good morning, how many nights have you stayed so far?",
         npcResponse:
-          "Six. I wanted to check out and leave, but now I'm stuck here. Yeah, but it's not awful all the time. I've been playing poker with Mrs. Gustall in the evenings. No money though, I'm not getting involved with that again. Anyway, I hope this wraps up soon. I have business to attend to. Yes, my in-laws will be so angry if I miss it. Hopefully this is over soon.",
+          "Six. I wanted to check out and leave, but now I'm stuck here. Yeah, but it's not awful all the time. I've been playing poker with Mrs. Gustall in the evenings. No money though,",
+        npcResponse2:
+          "I'm not getting involved with that again. Anyway, I hope this wraps up soon. I have business to attend to. Yes, my in-laws will be so angry if I miss it. Hopefully this is over soon.",
         monologue:
           "So he IS married. Why else would his in-laws care so much about his attendance? Is his wife the woman in the photo I found?",
         notebookEntry: "Married. Has a history of gambling.",
@@ -149,3 +161,4 @@ runawayMan.patrolSpeed = 2.0;
 runawayMan.idleDuration = 50;
 runawayMan.spriteRowMap = { 0: 1, 1: 2, 2: 3, 3: 0 };
 window.runawayMan = runawayMan;
+//"Have you been snooping around my office?! It was bad enough Helen was always rustling around, and now you're rummaging through my business. Anyway. Don't ask me; my sister runs it in Oakdaleasdfghjjhgfds.",
