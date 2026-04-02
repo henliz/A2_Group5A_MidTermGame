@@ -159,6 +159,12 @@ const clutterAssetList = [
     key: "crimescene",
     path: "assets/crime_scene.png",
   },
+  // close-up versions for examination display
+  { key: "necklace_close",      path: "assets/objects/necklace_close.png" },
+  { key: "newsclipping_close",  path: "assets/objects/newsclipping_close.png" },
+  { key: "note_close",          path: "assets/objects/note_close.png" },
+  { key: "donation_certificate",path: "assets/objects/donation certificate.png" },
+  { key: "medicinal_plat_book", path: "assets/objects/Medicinal_plat book.png" },
 ];
 
 const roomLayout = [
@@ -357,6 +363,13 @@ const roomLayout = [
     scale: 0.2,
     anchor: "top-left",
     glow: true,
+    interactable: true,
+    interactRadius: 80,
+    examined: false,
+    monologue: "A lobby telephone. The handset is cold. Someone mentioned a call the night it happened — I wonder if anyone thought to check the line.",
+    journalEntry: null,
+    closeupAsset: null,
+    closeupLabel: null,
   },
   //object necklace
   {
@@ -366,6 +379,13 @@ const roomLayout = [
     scale: 0.2,
     anchor: "top-left",
     glow: true,
+    interactable: true,
+    interactRadius: 80,
+    examined: false,
+    monologue: "A silver necklace, tucked between shelves. Expensive for a thank-you gift. Someone went to a lot of trouble to hide this — or to get it back.",
+    journalEntry: "Silver necklace found hidden near the lobby shelf — who left it here, and why was it hidden?",
+    closeupAsset: "necklace_close",
+    closeupLabel: "Silver Necklace",
   },
   //object certificate
   {
@@ -375,6 +395,13 @@ const roomLayout = [
     scale: 0.2,
     anchor: "top-left",
     glow: true,
+    interactable: true,
+    interactRadius: 80,
+    examined: false,
+    monologue: "A framed certificate. Dr. Krisia's name. The listed specialty is pharmacology — she knows exactly what plants can do to a person.",
+    journalEntry: "Dr. Krisia's certificate — pharmacology. She would know what wolfsbane does in high doses.",
+    closeupAsset: "donation_certificate",
+    closeupLabel: "Certificate",
   },
   //object newsclipping
   {
@@ -384,6 +411,13 @@ const roomLayout = [
     scale: 0.2,
     anchor: "top-left",
     glow: true,
+    interactable: true,
+    interactRadius: 80,
+    examined: false,
+    monologue: "A torn newspaper clipping. An article about a gambling ring — someone has underlined a name near the bottom twice, in red ink.",
+    journalEntry: "Newspaper clipping about a gambling raid — a name underlined twice in red ink.",
+    closeupAsset: "newsclipping_close",
+    closeupLabel: "News Clipping",
   },
   //object crumplenote
   {
@@ -393,6 +427,13 @@ const roomLayout = [
     scale: 0.2,
     anchor: "top-left",
     glow: true,
+    interactable: true,
+    interactRadius: 80,
+    examined: false,
+    monologue: "A crumpled note, written in a hurried hand: 'She knows. I can't let her say it.' No date. No signature.",
+    journalEntry: "Crumpled note found in the east rooms: 'She knows. I can't let her say it.'",
+    closeupAsset: "note_close",
+    closeupLabel: "Crumpled Note",
   },
   //object medicinalbook
   {
@@ -402,6 +443,13 @@ const roomLayout = [
     scale: 0.15,
     anchor: "top-left",
     glow: true,
+    interactable: true,
+    interactRadius: 80,
+    examined: false,
+    monologue: "A thick medical reference. Dog-eared on several pages, and one has been torn out entirely — near the chapter on wolfsbane. Someone didn't want this read.",
+    journalEntry: "Medical book — page torn from the wolfsbane chapter. Found near the lobby.",
+    closeupAsset: "medicinal_plat_book",
+    closeupLabel: "Medicinal Book",
   },
 
   //crime scene
@@ -466,6 +514,7 @@ function checkCollision(playerNextX, playerNextY, playerR) {
   let radius = playerR;
 
   for (const f of roomLayout) {
+    if (f.interactable) continue; // evidence items don't block movement
     const pos = getPropPosition(f);
     if (!pos) continue;
 
@@ -521,11 +570,19 @@ function clutterSetup() {
     }
     CLUTTER.push({
       img: img,
+      asset: item.asset,
       tileX: item.tileX,
       tileY: item.tileY,
       scale: window.TF1_SCALE ?? item.scale ?? 4,
       anchor: item.anchor || "bottom",
       glow: item.glow || false,
+      interactable: item.interactable || false,
+      interactRadius: item.interactRadius || 80,
+      monologue: item.monologue || null,
+      journalEntry: item.journalEntry || null,
+      closeupAsset: item.closeupAsset || null,
+      closeupLabel: item.closeupLabel || null,
+      examined: item.examined || false,
     });
   }
 }
@@ -536,27 +593,25 @@ function clutterDraw(worldX = 0, worldY = 0) {
   // Loop through all placed props and draw each one
   for (const p of CLUTTER) {
     if (!p.img) continue;
+    if (p.interactable && p.examined) continue; // collected items vanish
 
     const pos = getPropPosition(p, worldX, worldY);
     if (!pos) continue;
 
-    // Draw glow effect if enabled
-    if (p.glow) {
-      push();
-      // Calculate center of the object
+    // Draw glow effect only when player is nearby and item not yet examined
+    if (p.glow && !p.examined && typeof player !== "undefined") {
       const centerX = pos.actualX + pos.dw / 2;
       const centerY = pos.actualY + pos.dh / 2;
-      const maxRadius = Math.max(pos.dw, pos.dh) * 0.8; // Slightly larger than the object
-
-      // Draw multiple circles with decreasing opacity for glow effect
-      for (let i = 0; i < 5; i++) {
-        const radius = maxRadius * (1 - i * 0.1);
-        const alpha = 50 - i * 10; // Decreasing alpha
-        fill(255, 255, 200, alpha); // Soft yellow-white glow
-        noStroke();
-        ellipse(centerX, centerY, radius * 2, radius * 2);
+      if (dist(player.px, player.py, centerX, centerY) < (p.interactRadius || 80)) {
+        drawingContext.shadowColor = "rgba(255, 215, 60, 0.85)";
+        drawingContext.shadowBlur = 20;
+        image(p.img, pos.actualX, pos.actualY, pos.dw, pos.dh);
+        drawingContext.shadowColor = "rgba(255, 215, 60, 0.5)";
+        drawingContext.shadowBlur = 40;
+        image(p.img, pos.actualX, pos.actualY, pos.dw, pos.dh);
+        drawingContext.shadowColor = "transparent";
+        drawingContext.shadowBlur = 0;
       }
-      pop();
     }
 
     image(p.img, pos.actualX, pos.actualY, pos.dw, pos.dh);
@@ -572,11 +627,27 @@ function clutterDraw(worldX = 0, worldY = 0) {
   }
 }
 
+// INTERACTION: Return the first nearby unexamined interactable item, or null
+
+function getInteractableNearPlayer(player) {
+  for (const p of CLUTTER) {
+    if (!p.interactable || p.examined) continue;
+    const pos = getPropPosition(p);
+    if (!pos) continue;
+    const centerX = pos.actualX + pos.dw / 2;
+    const centerY = pos.actualY + pos.dh / 2;
+    const d = dist(player.px, player.py, centerX, centerY);
+    if (d < (p.interactRadius || 80)) return p;
+  }
+  return null;
+}
+
 // EXPOSE TO P5 GLOBAL MODE
 
 // expose to p5 global mode
 window.clutterPreload = clutterPreload;
 window.clutterSetup = clutterSetup;
 window.clutterDraw = clutterDraw;
+window.getInteractableNearPlayer = getInteractableNearPlayer;
 // also expose door layout so other modules can inspect or modify it
 window.door1Layout = door1Layout;

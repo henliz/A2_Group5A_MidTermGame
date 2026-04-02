@@ -81,6 +81,8 @@ function closeDialogue() {
   // CHANGE: clear monologue pages on close so they don't bleed into the next conversation
   monologuePages = [];
   monologuePageIndex = 0;
+  // clear any active item examination
+  if (typeof activeExamineItem !== "undefined") activeExamineItem = null;
 }
 
 function drawDialogue() {

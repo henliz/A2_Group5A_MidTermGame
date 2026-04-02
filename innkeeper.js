@@ -43,7 +43,7 @@ const innkeeperDialogueByDay = {
     ],
   },
   2: {
-    name: "Innkeeper",
+    name: "Mrs. Gustall",
     exitMonologue:
       "I didn't even finish the sentence. I need to talk to someone else.",
     opening: "Good morning. I hope you slept well despite everything.",
@@ -96,7 +96,7 @@ const innkeeperDialogueByDay = {
     ],
   },
   3: {
-    name: "Innkeeper",
+    name: "Mrs. Gustall",
     exitMonologue:
       "I didn't even finish the sentence. I need to talk to someone else.",
     opening:
