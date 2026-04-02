@@ -67,6 +67,13 @@ let journalTextC;
 
 let prologueVideo;
 
+// Audio settings
+let backgroundMusic;
+let musicStarted = false;
+let pageFlipSound;
+let journalNotifySound;
+let CookieSound;
+
 function preload() {
   tf1Preload();
   clutterPreload();
@@ -142,6 +149,10 @@ function preload() {
       if (currentScene === "PROLOGUE") currentScene = "GAME";
     }, 3000);
   };
+  backgroundMusic = loadSound("assets/audio/bgm.mp3"); //reference [1]
+  pageFlipSound = loadSound("assets/audio/pageturning.mp3"); //reference [1]
+  CookieSound = loadSound("assets/audio/eatcookie.mp3"); //reference [1]
+  journalNotifySound = loadSound("assets/audio/infocollect.mp3"); //reference [1]
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -306,10 +317,25 @@ function setup() {
     portraits.doctor.idle,
     portraits.runawayMan.idle,
   ];
+
+  // Start background music
+  if (backgroundMusic) {
+    console.log("Music loaded, waiting for user interaction...");
+  } else {
+    console.error("Background music failed to load");
+  }
 }
 
 function draw() {
   background(22, 18, 20);
+
+  // Start music when entering GAME scene
+  if (currentScene === "GAME" && !musicStarted && backgroundMusic) {
+    backgroundMusic.loop();
+    backgroundMusic.setVolume(0.17); // Set volume to 50%
+    musicStarted = true;
+    console.log("Music started!");
+  }
 
   //Home Page
   if (currentScene === "HOME") {

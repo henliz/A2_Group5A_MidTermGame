@@ -352,6 +352,13 @@ function confirmChoice() {
 
   spoonsRemaining -= option.cost;
   chosenOption = option;
+
+  // cookie consume sound
+  if (typeof CookieSound !== "undefined") {
+    CookieSound.setVolume(0.25);
+    CookieSound.play();
+  }
+
   // low cookie notification
   if (spoonsRemaining <= 2 && !lowCookieNotifTriggered) {
     lowCookieNotifVisible = true;

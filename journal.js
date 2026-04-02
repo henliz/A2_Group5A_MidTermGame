@@ -38,6 +38,10 @@ class Journal {
       this.openPage++;
       this.pages[this.openPage].hasNew = false;
       this._recalcUnread();
+      if (typeof pageFlipSound !== "undefined") {
+        pageFlipSound.setVolume(0.3);
+        pageFlipSound.play();
+      }
     }
   }
 
@@ -46,6 +50,10 @@ class Journal {
       this.openPage--;
       this.pages[this.openPage].hasNew = false;
       this._recalcUnread();
+      if (typeof pageFlipSound !== "undefined") {
+        pageFlipSound.setVolume(0.3);
+        pageFlipSound.play();
+      }
     }
   }
 
@@ -53,6 +61,12 @@ class Journal {
     this.pages[pageIndex].textEntries.push(text);
     this.pages[pageIndex].hasNew = true;
     this._recalcUnread();
+
+    // journal new entry sound
+    if (typeof journalNotifySound !== "undefined") {
+      journalNotifySound.setVolume(0.25);
+      journalNotifySound.play();
+    }
   }
 
   _recalcUnread() {
