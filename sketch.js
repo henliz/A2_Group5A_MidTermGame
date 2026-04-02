@@ -68,6 +68,7 @@ let prologueVideo;
 let backgroundMusic;
 let musicStarted = false;
 let pageFlipSound;
+let CookieSound;
 
 function preload() {
   tf1Preload();
@@ -144,6 +145,7 @@ function preload() {
   };
   backgroundMusic = loadSound("assets/audio/bgm.mp3"); //reference [1]
   pageFlipSound = loadSound("assets/audio/pageturning.mp3"); //reference [1]
+  CookieSound = loadSound("assets/audio/eatcookie.mp3"); //reference [1]
 }
 
 // ─────────────────────────────────────────────────────────────
