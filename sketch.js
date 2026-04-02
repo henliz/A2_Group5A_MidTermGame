@@ -24,6 +24,9 @@ const P_SPEED = 4.5;
 const P_RADIUS = 10;
 
 let journal;
+let judgement;
+let setting;
+let gear;
 
 let doctorPg;
 let rmPg;
@@ -80,6 +83,8 @@ function preload() {
   innkeeperPg = loadImage("assets/journal/Mrs.Gustall_journal.png");
   fdlPg = loadImage("assets/journal/Helen_journal.png");
   evidencePg = loadImage("assets/journal/Evidence_journal.png");
+
+  gear = loadImage("assets/gear.png");
 
   // character portraits
   portraits = {
@@ -360,6 +365,7 @@ function draw() {
   drawLowCookieNotif();
   bedtime();
   updateHoverCursor();
+  settings();
 }
 
 function updatePlayer() {
@@ -451,6 +457,12 @@ function drawSpoonCounter() {
   const startX = 20;
   const startY = 10;
 
+  //background
+  const totalW = 7 * spoonSize + 6 * gap;
+  noStroke();
+  fill(255, 255, 255, 80); // adjust alpha (0–255) to taste
+  rect(startX - 8, startY - 8, totalW + 16, spoonSize + 16, 12);
+
   // How many spoons will the hovered option cost?
   let previewCost = 0;
   if (
@@ -510,7 +522,7 @@ function drawPrompt() {
       let screenY = (npc.y - camY) * CAM_ZOOM;
 
       // draw a small dark pill-shaped box above the NPC
-      let msg = "Press Enter to talk";
+      let msg = "Press 'E' to talk";
       textSize(13);
       let msgW = textWidth(msg) + 20;
       let msgH = 24;
@@ -546,7 +558,7 @@ function drawPrompt() {
       let screenX = (doorPos.actualX - camX) * CAM_ZOOM;
       let screenY = (doorPos.actualY - camY) * CAM_ZOOM;
       // draw a small dark pill-shaped box above the door
-      let msg = "Press 'G' to go to bed";
+      let msg = "Press 'E' to go to bed";
       textSize(16);
       let msgW = textWidth(msg) + 20;
       let msgH = 24;
@@ -565,10 +577,19 @@ function drawPrompt() {
 
 //journal icon
 function drawJournalIcon() {
+  const padX = 10;
+  const padY = 8;
+  const leftEdge = width - 240;
+  const topEdge = 12 - padY;
+  const rightEdge = width - 30 + 60 + padX;
+  noStroke();
+  fill(255, 255, 255, 80);
+  rect(leftEdge, topEdge, rightEdge - leftEdge - 60, 86, 12);
+
   const iw = 60;
   const ih = 60;
-  const ix = width - iw - 90;
-  const iy = 12;
+  const ix = width - iw - 100;
+  const iy = 15;
 
   const hoveringJournal =
     mouseX > ix && mouseX < ix + iw && mouseY > iy && mouseY < iy + ih;
@@ -609,16 +630,78 @@ function drawJournalIcon() {
   }
 }
 
+//settings
+function settings() {
+  const iw = 50;
+  const ih = 50;
+  const ix = width - iw - 30;
+  const iy = 20;
+
+  image(gear, ix, iy, iw, ih);
+
+  if (setting === true) {
+    noStroke();
+    fill(0, 0, 0, 200);
+    rect(0, 0, width, height);
+
+    // instructions image
+    if (instructions) {
+      const imgW = min(900, width * 0.9);
+      const imgH = imgW * (instructions.height / instructions.width);
+      const imgX = (width - imgW) / 2;
+      const imgY = (height - imgH) / 2;
+
+      imageMode(CORNER);
+      image(instructions, imgX, imgY, imgW, imgH);
+    }
+    image(gear, ix, iy, iw, ih);
+  }
+}
+
+function handleSettingsClick(mx, my) {
+  const iw = 60;
+  const ih = 60;
+  const ix = width - iw - 30;
+  const iy = 12;
+
+  if (mx > ix && mx < ix + iw && my > iy && my < iy + ih) {
+    setting = !setting; // toggle on and off
+  }
+}
+
+function handlePhoneClick(mx, my) {
+  const wx = mx / CAM_ZOOM + camX;
+  const wy = my / CAM_ZOOM + camY;
+
+  const phoneX = 3.2 * TF1_T;
+  const phoneY = 13.2 * TF1_T;
+  const phoneW = 80;
+  const phoneH = 80;
+
+  if (
+    wx > phoneX &&
+    wx < phoneX + phoneW &&
+    wy > phoneY &&
+    wy < phoneY + phoneH
+  ) {
+    if (currentDay === 3 && dialoguePhase === "closed" && !journal.isOpen) {
+      judgePhase = "confirm";
+      judgeSelectedPortrait = -1;
+    }
+  }
+}
+
 function drawDayCounter() {
   textAlign(RIGHT, TOP);
   textSize(24);
   drawingContext.shadowColor = "rgba(0, 0, 0, 0.95)";
   drawingContext.shadowBlur = 4;
   fill(255, 210, 50);
-  text(`Day ${currentDay}/${TOTAL_DAYS}`, width - 14, 12);
+  text(`Day ${currentDay}/${TOTAL_DAYS}`, width - 170, 35);
   drawingContext.shadowColor = "transparent";
   drawingContext.shadowBlur = 0;
 }
+
 function advanceDay() {
   currentDay++;
 
@@ -835,7 +918,7 @@ function keyPressed() {
     return;
   }
 
-  if (isPlayerNearDoor1(player) && (key === "g" || key === "G")) {
+  if (isPlayerNearDoor1(player) && (key === "e" || key === "E")) {
     if (currentDay < TOTAL_DAYS) {
       advanceDay();
     }
@@ -858,7 +941,7 @@ function keyPressed() {
     }
   }
 
-  if (keyCode === ENTER) {
+  if (key === "E" || key === "e") {
     // If text is still animating, skip to full text instead of advancing
     const choosingPhase =
       dialoguePhase === "choosing" || dialoguePhase === "repeat-choosing";
@@ -930,6 +1013,9 @@ function mousePressed() {
       return;
     }
   }
+
+  handleSettingsClick(mouseX, mouseY);
+  handlePhoneClick(mouseX, mouseY);
 
   if (currentScene === "PROLOGUE") {
     prologueVideo.stop();
