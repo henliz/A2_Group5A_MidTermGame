@@ -64,6 +64,11 @@ let journalTextC;
 
 let prologueVideo;
 
+//Aduio settings
+let backgroundMusic;
+let musicStarted = false;
+let pageFlipSound;
+
 function preload() {
   tf1Preload();
   clutterPreload();
@@ -137,6 +142,8 @@ function preload() {
       if (currentScene === "PROLOGUE") currentScene = "GAME";
     }, 3000);
   };
+  backgroundMusic = loadSound("assets/audio/bgm.mp3"); //reference [1]
+  pageFlipSound = loadSound("assets/audio/pageturning.mp3"); //reference [1]
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -301,10 +308,25 @@ function setup() {
     portraits.doctor.idle,
     portraits.runawayMan.idle,
   ];
+
+  // Start background music
+  if (backgroundMusic) {
+    console.log("Music loaded, waiting for user interaction...");
+  } else {
+    console.error("Background music failed to load");
+  }
 }
 
 function draw() {
   background(22, 18, 20);
+
+  // Start music when entering GAME scene
+  if (currentScene === "GAME" && !musicStarted && backgroundMusic) {
+    backgroundMusic.loop();
+    backgroundMusic.setVolume(0.3); // Set volume to 50%
+    musicStarted = true;
+    console.log("Music started!");
+  }
 
   //Home Page
   if (currentScene === "HOME") {
