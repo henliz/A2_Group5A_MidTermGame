@@ -785,33 +785,21 @@ function updateHoverCursor() {
       }
     }
 
-    // exit button hover
-    const exitY = startY + visibleIndices.length * gap;
-    if (
-      mouseX > btnX &&
-      mouseX < btnX + btnW &&
-      mouseY > exitY &&
-      mouseY < exitY + btnH
-    ) {
-      hovering = true;
-      selectedOption = -1;
-    }
-  }
-
-  // NPC sprites (world-space hit test)
-  if (dialoguePhase === "closed" && currentScene === "GAME") {
-    for (const npc of npcs) {
-      if (isMouseOverNPC(npc)) {
-        hovering = true;
-        break;
+    // NPC sprites (world-space hit test)
+    if (dialoguePhase === "closed" && currentScene === "GAME") {
+      for (const npc of npcs) {
+        if (isMouseOverNPC(npc)) {
+          hovering = true;
+          break;
+        }
       }
     }
-  }
 
-  const clickCursor = "url('assets/cursor-click.png') 4 4, auto";
-  const defaultCursor = "url('assets/cursor-default.png') 4 4, auto";
-  document.body.style.cursor =
-    hovering || mouseIsPressed ? clickCursor : defaultCursor;
+    const clickCursor = "url('assets/cursor-click.png') 4 4, auto";
+    const defaultCursor = "url('assets/cursor-default.png') 4 4, auto";
+    document.body.style.cursor =
+      hovering || mouseIsPressed ? clickCursor : defaultCursor;
+  }
 }
 
 function keyPressed() {
@@ -887,20 +875,20 @@ function keyPressed() {
       } else {
         dialoguePhase = "repeat-choosing";
       }
-    } else if (dialoguePhase === "response") {
-      if (pendingNpcResponse2) {
+    } else if (dialoguePhase === "response" || dialoguePhase === "response2") {
+      if (pendingResponseQueue.length > 0) {
         dialoguePhase = "response2";
-        startTypewriter(pendingNpcResponse2);
-        pendingNpcResponse2 = null;
+        startTypewriter(pendingResponseQueue.shift());
       } else {
-        dialoguePhase = "monologue";
-        startTypewriter(chosenOption.monologue);
+        startMonologue(chosenOption.monologue);
       }
-    } else if (dialoguePhase === "response2") {
-      dialoguePhase = "monologue";
-      startTypewriter(chosenOption.monologue);
     } else if (dialoguePhase === "monologue") {
-      closeDialogue();
+      if (monologuePageIndex < monologuePages.length - 1) {
+        monologuePageIndex++;
+        startTypewriter(monologuePages[monologuePageIndex]);
+      } else {
+        closeDialogue();
+      }
     } else if (dialoguePhase === "hesitation") {
       closeDialogue();
     }
@@ -1014,20 +1002,23 @@ function mousePressed() {
       } else if (dialoguePhase === "repeat") {
         if (spoonsRemaining === 0) closeDialogue();
         else dialoguePhase = "repeat-choosing";
-      } else if (dialoguePhase === "response") {
-        if (pendingNpcResponse2) {
+      } else if (
+        dialoguePhase === "response" ||
+        dialoguePhase === "response2"
+      ) {
+        if (pendingResponseQueue.length > 0) {
           dialoguePhase = "response2";
-          startTypewriter(pendingNpcResponse2);
-          pendingNpcResponse2 = null;
+          startTypewriter(pendingResponseQueue.shift());
         } else {
-          dialoguePhase = "monologue";
-          startTypewriter(chosenOption.monologue);
+          startMonologue(chosenOption.monologue);
         }
-      } else if (dialoguePhase === "response2") {
-        dialoguePhase = "monologue";
-        startTypewriter(chosenOption.monologue);
       } else if (dialoguePhase === "monologue") {
-        closeDialogue();
+        if (monologuePageIndex < monologuePages.length - 1) {
+          monologuePageIndex++;
+          startTypewriter(monologuePages[monologuePageIndex]);
+        } else {
+          closeDialogue();
+        }
       } else if (dialoguePhase === "hesitation") {
         closeDialogue();
       }
@@ -1051,13 +1042,6 @@ function mousePressed() {
         confirmChoice();
         return;
       }
-    }
-
-    // exit button click
-    const exitY = startY + visibleIndices.length * gap;
-    if (isMouseOver(btnX, exitY, btnW, btnH)) {
-      handleExit();
-      return;
     }
   }
 }

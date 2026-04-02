@@ -3,9 +3,14 @@ let activeNPC = null;
 let selectedOption = 0; // which button is highlighted (0, 1, 2)
 let spoonsRemaining = 7; // spoon budget for the day
 let chosenOption = null; // stores the option the player picked
-let pendingNpcResponse2 = null;
-let dialoguePages = []; // current text split into fitted pages
-let dialoguePageIndex = 0; // which page we're on
+let pendingResponseQueue = []; // holds npcResponse2, 3, 4 in order
+
+// CHANGE: added two variables to track monologue pages.
+// monologuePages is an array of text chunks that fit inside the dialogue box.
+// monologuePageIndex tracks which chunk we're currently showing.
+let monologuePages = [];
+let monologuePageIndex = 0;
+
 const tooTiredLine = "Gosh… I couldn't bring myself to ask them that."; // dialogue for when you don't have enough spoons to choose a dialogue option
 
 // Exposed dialogue box bounds so sketch.js can hit-test clicks/hover
@@ -67,11 +72,15 @@ function openDialogue(npc) {
 
 function closeDialogue() {
   if (activeNPC) {
-    activeNPC.firstVisit = false; // flip after first full conversation
+    activeNPC.firstVisit = false;
   }
   activeNPC = null;
   chosenOption = null;
   dialoguePhase = "closed";
+  pendingResponseQueue = [];
+  // CHANGE: clear monologue pages on close so they don't bleed into the next conversation
+  monologuePages = [];
+  monologuePageIndex = 0;
 }
 
 function drawDialogue() {
@@ -107,8 +116,21 @@ function handleExit() {
     cost: -1,
     npcResponse: null,
   };
+  // CHANGE: use startMonologue() instead of manually setting phase + typewriter,
+  // so the exit monologue also gets auto-paged if it's long
+  startMonologue(exitText);
+}
+
+// CHANGE: new helper function that handles starting a monologue.
+// It splits the full text into pages that fit the box (whole words only),
+// sets the phase to "monologue", and starts the typewriter on page 1.
+// Call this anywhere you previously wrote:
+//   dialoguePhase = "monologue"; startTypewriter(someText);
+function startMonologue(text) {
+  monologuePages = splitMonologueIntoPages(text);
+  monologuePageIndex = 0;
   dialoguePhase = "monologue";
-  startTypewriter(exitText);
+  startTypewriter(monologuePages[0]);
 }
 
 //helper functions for drawDialogue
@@ -196,6 +218,73 @@ function drawNameTag(boxX, boxY, boxW) {
   }
 }
 
+// CHANGE: helper that measures how tall a wrapped block of text would be
+// at a given width and font size. Used by splitMonologueIntoPages() to know
+// when a page is full. Words are never split — it only breaks at spaces.
+function measureWrappedHeight(str, maxW, size) {
+  textSize(size);
+  let words = str.split(" ");
+  let lineW = 0;
+  let lines = 1;
+  let spaceW = textWidth(" ");
+
+  for (let word of words) {
+    let parts = word.split("\n");
+    for (let p = 0; p < parts.length; p++) {
+      let ww = textWidth(parts[p]);
+      if (p > 0) {
+        lines++;
+        lineW = 0;
+      }
+      if (lineW + ww > maxW && lineW > 0) {
+        lines++;
+        lineW = ww + spaceW;
+      } else {
+        lineW += ww + spaceW;
+      }
+    }
+  }
+  let lineH = textAscent() + textDescent() + 6;
+  return lines * lineH;
+}
+
+// CHANGE: splits a full monologue string into an array of page strings,
+// each of which fits inside the dialogue box without overflowing.
+// Words are kept whole — no word is ever cut in half.
+// Short monologues that fit in one page just return a single-element array
+// and behave exactly as before.
+function splitMonologueIntoPages(fullText) {
+  let boxW = 1857 / 3;
+  let boxH = 681 / 3;
+  let usableW = boxW - 75;
+  let usableH = boxH - 80;
+  let size = 30;
+
+  textSize(size);
+  textStyle(ITALIC);
+
+  let words = fullText.split(" ");
+  let pages = [];
+  let currentPage = "";
+
+  for (let word of words) {
+    let test = currentPage === "" ? word : currentPage + " " + word;
+    if (
+      measureWrappedHeight(test, usableW, size) > usableH &&
+      currentPage !== ""
+    ) {
+      pages.push(currentPage);
+      currentPage = word;
+    } else {
+      currentPage = test;
+    }
+  }
+  if (currentPage !== "") pages.push(currentPage);
+
+  textStyle(NORMAL);
+  return pages.length > 0 ? pages : [""];
+}
+
 function drawDialogueText(boxX, boxY, boxW, boxH) {
   // text starts after the portrait width so it doesn't overlap
   let textX = boxX + 50;
@@ -212,6 +301,9 @@ function drawDialogueText(boxX, boxY, boxW, boxH) {
     return;
   }
 
+  // CHANGE: monologue rendering is now clean — no page-building here.
+  // Pages are built once in startMonologue() before this ever runs,
+  // so we just render whatever the typewriter is currently showing.
   if (dialoguePhase === "monologue" && chosenOption) {
     fill(255);
     textStyle(ITALIC);
@@ -233,6 +325,12 @@ function drawDialogueText(boxX, boxY, boxW, boxH) {
     text(revealed, textX, boxY + 40, textW, boxH - 80);
   }
   if (dialoguePhase === "response" && chosenOption) {
+    text(revealed, textX, boxY + 40, textW, boxH - 80);
+  }
+  if (
+    (dialoguePhase === "response" || dialoguePhase === "response2") &&
+    chosenOption
+  ) {
     text(revealed, textX, boxY + 40, textW, boxH - 80);
   }
 }
@@ -262,7 +360,7 @@ function drawEnterHint(boxX, boxY, boxW, boxH) {
 }
 
 function isMouseOver(x, y, w, h) {
-  //detects when the mouswe is over a dialogue option box
+  //detects when the mouse is over a dialogue option box
   return mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h;
 }
 
@@ -316,23 +414,6 @@ function drawOptions() {
     textSize(18);
     text(option.cost, btnX + btnW - iconSize - 12, btnY + btnH / 2);
   }
-
-  // exit button — always drawn below the last visible option
-  let exitIndex = visibleIndices.length; // position after last option
-  let exitY = startY + exitIndex * gap;
-  let isExitSelected = selectedOption === -1; // -1 = exit button selected
-
-  if (isExitSelected) {
-    image(uiBtnHover, btnX, exitY, btnW, btnH);
-    fill(255);
-  } else {
-    image(uiBtnRegular, btnX, exitY, btnW, btnH + 18);
-    fill(30, 30, 30);
-  }
-
-  textSize(18);
-  textAlign(CENTER, CENTER);
-  text("Nevermind [Exit]", btnX + btnW / 2, exitY + btnH / 2);
 }
 
 function confirmChoice() {
@@ -345,8 +426,8 @@ function confirmChoice() {
       cost: -1, // special value so it doesn't trigger exit
       npcResponse: null,
     };
-    dialoguePhase = "monologue";
-    startTypewriter(tooTiredLine);
+    // CHANGE: use startMonologue() so the too-tired line is also auto-paged
+    startMonologue(tooTiredLine);
     return;
   }
 
@@ -367,7 +448,7 @@ function confirmChoice() {
   );
   selectedOption = visible.length > 0 ? visible[0] : 0;
 
-  // mark this option as used (skip C — it's always the exit)
+  // mark this option as used
   activeNPC.usedOptions.push(option.id);
 
   // add notebook entry if this option has one
@@ -375,16 +456,18 @@ function confirmChoice() {
     journal.addTextEntry(activeNPC.journalPageIndex, option.notebookEntry);
   }
 
+  // build the queue from any extra response parts
+  pendingResponseQueue = [];
+  if (option.npcResponse2) pendingResponseQueue.push(option.npcResponse2);
+  if (option.npcResponse3) pendingResponseQueue.push(option.npcResponse3);
+  if (option.npcResponse4) pendingResponseQueue.push(option.npcResponse4);
+
   dialoguePhase = "response";
   startTypewriter(option.npcResponse);
 }
 
 function bedtime() {
-  if (
-    spoonsRemaining === 0 &&
-    dialoguePhase === "closed" //||
-    //(spoonsRemaining === 1 && dialoguePhase === "closed")
-  ) {
+  if (spoonsRemaining === 0 && dialoguePhase === "closed") {
     fill("black");
     rect(0, 0, width, height);
 
@@ -427,3 +510,6 @@ window.bedtime = bedtime;
 window.startTypewriter = startTypewriter;
 window.skipTypewriter = skipTypewriter;
 window.handleExit = handleExit;
+// CHANGE: export startMonologue so sketch.js can call it when transitioning
+// from a response phase into the monologue phase
+window.startMonologue = startMonologue;
