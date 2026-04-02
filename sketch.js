@@ -78,6 +78,7 @@ let CookieSound;
 function preload() {
   tf1Preload();
   clutterPreload();
+  checkinPreload();
   charSheet = loadImage("redridinghood.png"); //reference [15]
   loadHomeAssets();
   spoonImg = loadImage("assets/cookies.png"); //reference [7]
@@ -299,7 +300,8 @@ function setup() {
   used.push({ x: runawayMan.x, y: runawayMan.y });
 
   journal = new Journal();
-  npcs = [innkeeper, doctor, runawayMan]; //array of npcs we have
+  npcs = [innkeeper, doctor, runawayMan];
+  checkinSetup(); //array of npcs we have
 
   // set NPC colours here, after p5.js is ready
   innkeeper.sprite = innkeeperImg;
@@ -338,9 +340,11 @@ function draw() {
     console.log("Music started!");
   }
 
-  //Home Page
   if (currentScene === "HOME") {
     drawHomePage();
+    return;
+  } else if (currentScene === "CHECKIN") {
+    checkinDraw();
     return;
   } else if (currentScene === "END") {
     drawEndPage();
@@ -969,14 +973,14 @@ function updateHoverCursor() {
 function keyPressed() {
   if (currentScene === "HOME") {
     if (keyCode === ENTER) {
-      currentScene = "PROLOGUE";
-      prologueVideo.play();
-      // when video ends, automatically go to GAME
-      prologueVideo.elt.onended = () => {
-        currentScene = "GAME";
-        prologueVideo.hide();
-      };
+      currentScene = "CHECKIN";
+      checkinSetup();
     }
+    return;
+  }
+
+  if (currentScene === "CHECKIN") {
+    if (keyCode === ENTER) checkinAdvance();
     return;
   }
 
@@ -1114,18 +1118,18 @@ function mousePressed() {
     return;
   }
 
-  // Home screen — click "Press ENTER to start" row
   if (currentScene === "HOME") {
     const ty = height * 0.5 - 20;
     if (mouseY > ty - 16 && mouseY < ty + 16) {
-      currentScene = "PROLOGUE";
-      prologueVideo.play();
-      prologueVideo.elt.onended = () => {
-        currentScene = "GAME";
-        prologueVideo.hide();
-      };
+      currentScene = "CHECKIN";
+      checkinSetup();
       return;
     }
+  }
+
+  if (currentScene === "CHECKIN") {
+    checkinAdvance();
+    return;
   }
 
   if (
