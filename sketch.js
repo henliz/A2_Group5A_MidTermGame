@@ -64,10 +64,11 @@ let journalTextC;
 
 let prologueVideo;
 
-//Aduio settings
+// Audio settings
 let backgroundMusic;
 let musicStarted = false;
 let pageFlipSound;
+let journalNotifySound;
 let CookieSound;
 
 function preload() {
@@ -146,6 +147,7 @@ function preload() {
   backgroundMusic = loadSound("assets/audio/bgm.mp3"); //reference [1]
   pageFlipSound = loadSound("assets/audio/pageturning.mp3"); //reference [1]
   CookieSound = loadSound("assets/audio/eatcookie.mp3"); //reference [1]
+  journalNotifySound = loadSound("assets/audio/infocollect.mp3"); //reference [1]
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -325,7 +327,7 @@ function draw() {
   // Start music when entering GAME scene
   if (currentScene === "GAME" && !musicStarted && backgroundMusic) {
     backgroundMusic.loop();
-    backgroundMusic.setVolume(0.3); // Set volume to 50%
+    backgroundMusic.setVolume(0.17); // Set volume to 50%
     musicStarted = true;
     console.log("Music started!");
   }
